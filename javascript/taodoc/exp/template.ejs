@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title><%= title %></title>
+    </head>
+    <body>
+        <!-- Information -->
+        <h1><%= title %></h1>
+        <p>version: <%= version %></p>
+        <p>basePath: <%= basePath %></p>
+        <p><%= description %></p>
+
+        <!-- Paths -->
+        <% for (p in paths) { %>
+            <% var path = paths[p]; %>
+            <% for (method in path) { %>
+                <%- include('./path', { path: p, method: method, obj: path[method] }); -%>
+            <% } %>
+        <% } %>
+
+        <!-- Definitions -->
+        <% for (name in definitions) { %>
+            <%- include('./definition', {name: name, obj: definitions[name] }); -%>
+        <% } %>
+    </body>
+</html>
