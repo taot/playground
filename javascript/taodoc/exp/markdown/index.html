@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+    <!-- <link href="http://kevinburke.bitbucket.org/markdowncss/markdown.css" rel="stylesheet"></link> -->
+  <body>
+    <textarea id="text-input" oninput="this.editor.update()"
+              rows="6" cols="60">Type **Markdown** here.
+
+```{
+    "id": 1,
+    "name": "hello"
+}```
+</textarea>
+    <div id="preview"> </div>
+    <script src="./markdown.js"></script>
+    <!-- <code>
+        <pre>
+            {
+                "id": 1,
+                "name": "hello"
+            }
+        </pre>
+    </code> -->
+    <script>
+      function Editor(input, preview) {
+        this.update = function () {
+          preview.innerHTML = markdown.toHTML(input.value);
+
+          var codeElems =  preview.getElementsByTagName('code');
+          for (e in codeElems) {
+              console.log(e);
+          }
+          window.preview = preview;
+          window.e = codeElems[0];
+          window.p = document.createElement('pre');
+          p.innerHTML = e.innerHTML;
+          e.childNodes[0].remove();
+          e.appendChild(p);
+        };
+        input.editor = this;
+        this.update();
+      }
+      var $ = function (id) { return document.getElementById(id); };
+      new Editor($("text-input"), $("preview"));
+    </script>
+  </body>
+</html>

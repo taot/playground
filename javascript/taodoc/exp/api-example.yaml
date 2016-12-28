@@ -5,7 +5,12 @@ basePath: /v1
 description: |
     ## 文档
 
-    这是文档
+    ```
+    {
+        "id": 1,
+        "name": "Terry"
+    }
+    ```
 
 paths:
     /register/mobile:
@@ -25,9 +30,13 @@ paths:
                 200:
                     description: 成功
                     headers:
-                        schema:
-                            access_token:
-                                type: string
+                        access_token:
+                            type: string
+                    example: |
+                        ```{
+                            "id": 1,
+                            "access_token": "asdfghjkl"
+                        }```
                 400:
                     description: 失败
                     schema:

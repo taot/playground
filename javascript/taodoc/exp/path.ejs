@@ -1,5 +1,9 @@
 <div>
     <p><%= method.toUpperCase() %> <%= path %></p>
-    <p><%= obj.description %></p>
+    <p class="markdown"><%= obj.description %></p>
     <%- include('./request', obj.request); -%>
+    <p>Responses</p>
+    <% for (status in obj.responses) { %>
+        <%- include('./response', { status: status, obj: obj.responses[status] }); -%>
+    <% } %>
 </div>

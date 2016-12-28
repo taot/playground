@@ -3,15 +3,21 @@
     <head>
         <meta charset="utf-8">
         <title>UAV Monitor API</title>
+        <script src="./markdown/markdown.js"></script>
     </head>
     <body>
         <!-- Information -->
         <h1>UAV Monitor API</h1>
         <p>version: 0.1.0</p>
         <p>basePath: /v1</p>
-        <p>## 文档
+        <p class="markdown">## 文档
 
-这是文档
+```
+{
+    &#34;id&#34;: 1,
+    &#34;name&#34;: &#34;Terry&#34;
+}
+```
 </p>
 
         <!-- Paths -->
@@ -20,7 +26,7 @@
             
                 <div>
     <p>GET /register/mobile</p>
-    <p>手机号注册</p>
+    <p class="markdown">手机号注册</p>
     <!-- Headers -->
 <p>Request</p>
 
@@ -51,11 +57,54 @@
 
 <!-- Body -->
 
+    <p>Responses</p>
+    
+        <!-- Headers -->
+<p>200</p>
+
+    <p>Headers</p>
+    <table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Required</th>
+    </tr>
+    
+        <tr>
+            <td>access_token</td>
+            <td>string</td>
+            <td></td>
+            <td></td>
+        </tr>
+    
+</table>
+
+<!-- Body -->
+
+<!-- Example -->
+
+    <p>Example</p>
+    <p class="markdown">```{
+    &#34;id&#34;: 1,
+    &#34;access_token&#34;: &#34;asdfghjkl&#34;
+}```
+</p>
+
+    
+        <!-- Headers -->
+<p>400</p>
+
+<!-- Body -->
+
+<!-- Example -->
+
+    
 </div>
             
                 <div>
     <p>POST /register/mobile</p>
-    <p>手机号注册</p>
+    <p class="markdown">手机号注册</p>
     <!-- Headers -->
 <p>Request</p>
 
@@ -105,6 +154,42 @@
     
 </table>
 
+    <p>Responses</p>
+    
+        <!-- Headers -->
+<p>200</p>
+
+    <p>Headers</p>
+    <table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Required</th>
+    </tr>
+    
+        <tr>
+            <td>access_token</td>
+            <td>string</td>
+            <td></td>
+            <td></td>
+        </tr>
+    
+</table>
+
+<!-- Body -->
+
+<!-- Example -->
+
+    
+        <!-- Headers -->
+<p>400</p>
+
+<!-- Body -->
+
+<!-- Example -->
+
+    
 </div>
             
         
@@ -112,7 +197,7 @@
             
                 <div>
     <p>GET /register/password</p>
-    <p>手机号注册</p>
+    <p class="markdown">手机号注册</p>
     <!-- Headers -->
 <p>Request</p>
 
@@ -136,11 +221,47 @@
 
 <!-- Body -->
 
+    <p>Responses</p>
+    
+        <!-- Headers -->
+<p>200</p>
+
+    <p>Headers</p>
+    <table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Required</th>
+    </tr>
+    
+        <tr>
+            <td>access_token</td>
+            <td>string</td>
+            <td></td>
+            <td></td>
+        </tr>
+    
+</table>
+
+<!-- Body -->
+
+<!-- Example -->
+
+    
+        <!-- Headers -->
+<p>400</p>
+
+<!-- Body -->
+
+<!-- Example -->
+
+    
 </div>
             
                 <div>
     <p>POST /register/password</p>
-    <p>手机号注册</p>
+    <p class="markdown">手机号注册</p>
     <!-- Headers -->
 <p>Request</p>
 
@@ -183,6 +304,42 @@
     
 </table>
 
+    <p>Responses</p>
+    
+        <!-- Headers -->
+<p>200</p>
+
+    <p>Headers</p>
+    <table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Required</th>
+    </tr>
+    
+        <tr>
+            <td>access_token</td>
+            <td>string</td>
+            <td></td>
+            <td></td>
+        </tr>
+    
+</table>
+
+<!-- Body -->
+
+<!-- Example -->
+
+    
+        <!-- Headers -->
+<p>400</p>
+
+<!-- Body -->
+
+<!-- Example -->
+
+    
 </div>
             
         
@@ -192,4 +349,19 @@
             <p>Error</p>
         
     </body>
+    <script>
+        var mdElems = document.getElementsByClassName('markdown');
+        for (var i = 0; i < mdElems.length; i++) {
+            var e = mdElems[i];
+            e.innerHTML = markdown.toHTML(e.innerHTML);
+        }
+        var codeElems = document.getElementsByTagName('code');
+        for (var i = 0; i < codeElems.length; i++) {
+            var e = codeElems[i];
+            var p = document.createElement('pre');
+            p.innerHTML = e.innerHTML;
+            e.childNodes[0].remove();
+            e.appendChild(p);
+        }
+    </script>
 </html>
