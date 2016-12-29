@@ -14,7 +14,7 @@
                 padding: 10px 20px;
                 margin: 20px 0;
             }
-            h1 {
+            h1.apidoc {
                 text-align: center;
             }
             table {
@@ -35,21 +35,35 @@
                 border-radius: 5px;
                 margin: 5px 10px 5px 0px;
             }
-            .get {
+            .method.get {
                 background-color: green;
                 color: white
             }
-            .post {
+            .method.post {
                 background-color: blue;
                 color: white
             }
-            .put {
-                background-color: green;
+            .method.put {
+                background-color: darkcyan;
                 color: white
             }
-            .delete {
-                background-color: green;
+            .method.delete {
+                background-color: red;
                 color: white
+            }
+            .status {
+                border: 1px solid #999999;
+                padding: 5px;
+                border-radius: 5px;
+                margin: 5px 10px 5px 0px;
+            }
+            .status.ok {
+                /*background-color: green;*/
+                color: green;
+            }
+            .status.error {
+                /*background-color: red;*/
+                color: red;
             }
             .example {
                 border: 1px solid #999999;
@@ -58,7 +72,7 @@
     </head>
     <body>
         <!-- Information -->
-        <h1><%= title %></h1>
+        <h1 class="apidoc"><%= title %></h1>
         <h2>Summary</h2>
         <p>Version: <%= version %></p>
         <p>BasePath: <%= basePath %></p>
@@ -74,10 +88,10 @@
         <% } %>
 
         <!-- Definitions -->
-        <h2>Definitions</h2>
+        <!-- <h2>Definitions</h2>
         <% for (name in definitions) { %>
             <%- include('./definition', {name: name, obj: definitions[name] }); -%>
-        <% } %>
+        <% } %> -->
     </body>
     <script>
         var mdElems = document.getElementsByClassName('markdown');

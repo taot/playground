@@ -1,11 +1,13 @@
-<!-- Headers -->
-<% if (locals.headers) { %>
-    <p>Headers</p>
-    <%- include('./schema-table', { schema: headers }); -%>
-<% } %>
-<!-- Body -->
-<% if (locals.body) { %>
-    <p>Body</p>
-    <p>Content-Type: <%= body.type %> </p>
-    <%- include('./schema-table', { schema: body.schema }); -%>
-<% } %>
+<div class="box">
+    <!-- Headers -->
+    <% if (locals.headers) { %>
+        <p>Headers</p>
+        <%- include('./schema-table', { schema: headers }); -%>
+    <% } %>
+    <!-- Body -->
+    <% if (locals.body) { %>
+        <p>Body</p>
+        <p>Content-Type: <%= body.type %> </p>
+        <%- include('./schema-table', { schema: body.schema }); -%>
+    <% } %>
+</div>
