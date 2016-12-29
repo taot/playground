@@ -4,15 +4,31 @@
         <meta charset="utf-8">
         <title><%= title %></title>
         <script src="./markdown/markdown.js"></script>
+        <style>
+            body {
+                color: #233142;
+                padding: 0 20px;
+            }
+            .box {
+                border-style: solid;
+                border-width: 1px;
+                border-color: #A5DEF1
+            }
+            h1 {
+                text-align: center;
+            }
+        </style>
     </head>
     <body>
         <!-- Information -->
         <h1><%= title %></h1>
-        <p>version: <%= version %></p>
-        <p>basePath: <%= basePath %></p>
+        <h2>Summary</h2>
+        <p>Version: <%= version %></p>
+        <p>BasePath: <%= basePath %></p>
         <p class="markdown"><%= description %></p>
 
         <!-- Paths -->
+        <h2>Paths</h2>
         <% for (p in paths) { %>
             <% var path = paths[p]; %>
             <% for (method in path) { %>
@@ -21,6 +37,7 @@
         <% } %>
 
         <!-- Definitions -->
+        <h2>Definitions</h2>
         <% for (name in definitions) { %>
             <%- include('./definition', {name: name, obj: definitions[name] }); -%>
         <% } %>

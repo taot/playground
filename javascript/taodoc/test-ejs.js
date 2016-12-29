@@ -4,7 +4,7 @@ var fs = require('fs');
 
 var doc = yaml.safeLoad(fs.readFileSync('exp/api-example.yaml', 'utf8'));
 console.log(doc.title);
-ejs.renderFile('./exp/template.ejs', doc, {}, function(err, str){
+ejs.renderFile('./exp/templates/template.ejs', doc, {}, function(err, str){
     if (err) {
         console.error(err);
         return;
@@ -16,4 +16,5 @@ ejs.renderFile('./exp/template.ejs', doc, {}, function(err, str){
         }
         console.log('saved');
     });
+
 });
