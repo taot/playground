@@ -14,4 +14,4 @@ W = tf.Variable(tf.zeros([784,10]))
 b = tf.Variable(tf.zeros([10]))
 
 sess.run(tf.initialize_all_variables())
-y = tf.matmul(x,W) + b
+y = tf.matmul(x, W) + b
