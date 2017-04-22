@@ -3,4 +3,5 @@ build/
 node_modules/
 target/
 .idea/
+.gradle/
 __pycache__/
