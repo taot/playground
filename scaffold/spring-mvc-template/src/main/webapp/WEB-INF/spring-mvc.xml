@@ -11,5 +11,12 @@
         <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller" />
     </context:component-scan>
 
+    <mvc:interceptors>
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/>
+            <bean class="com.taot.demo.web.LoggingInterceptor"></bean>
+        </mvc:interceptor>
+    </mvc:interceptors>
+
     <mvc:annotation-driven />
 </beans>

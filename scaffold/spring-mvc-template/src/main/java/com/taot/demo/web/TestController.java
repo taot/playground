@@ -10,33 +10,34 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 
 @Controller
-@RequestMapping(value = "/")
-public class MainController {
+@RequestMapping(value = "/test")
+@SuppressWarnings("unused")
+public class TestController {
 
     @Autowired
     private UserValidator userValidator;
 
-    public MainController() {
-        System.out.println("Main controller constructor");
-    }
-
-    @RequestMapping(method = RequestMethod.GET, value = "/test")
+    @RequestMapping(method = RequestMethod.GET, value = "")
     @ResponseBody
     public User testGet(
             @RequestParam(value = "id", required = false, defaultValue = "1") int id,
             @RequestParam(value = "name") String name,
             HttpServletRequest request) {
-
         return new User(id, name);
     }
 
-    @RequestMapping(method = RequestMethod.POST, value = "/test")
+    @RequestMapping(method = RequestMethod.POST, value = "")
     @ResponseBody
     public User testPost(@ModelAttribute("user") User user, BindingResult result) {
-//        return new User(1, "Terry");
         userValidator.validate(user, result);
         System.out.println(user);
         System.out.println(result);
         return user;
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/error")
+    @ResponseBody
+    public User testError(HttpServletRequest request) {
+        throw new RuntimeException("test error");
     }
 }
