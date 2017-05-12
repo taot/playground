@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
 @Controller
@@ -16,6 +17,11 @@ public class TestController {
 
     @Autowired
     private UserValidator userValidator;
+
+    @PostConstruct
+    public void init() {
+        System.out.println("++++++++++++++++++++ TestController.init ++++++++++++++");
+    }
 
     @RequestMapping(method = RequestMethod.GET, value = "")
     @ResponseBody

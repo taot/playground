@@ -5,6 +5,7 @@ buildscript {
 
     dependencies {
         classpath 'com.bmuschko:gradle-tomcat-plugin:2.2.5'
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE")
     }
 }
 
@@ -14,6 +15,7 @@ version '0.1.0'
 apply plugin: 'java'
 apply plugin: 'war'
 apply plugin: 'com.bmuschko.tomcat'
+apply plugin: 'org.springframework.boot'
 
 repositories {
     mavenCentral()
@@ -27,6 +29,15 @@ dependencies {
     compile "org.springframework:spring-webmvc:${springVersion}"
     compile "com.fasterxml.jackson.core:jackson-databind:2.8.8"
     compile "javax.servlet:javax.servlet-api:3.1.0"
+
+    // tag::jetty[]
+    compile("org.springframework.boot:spring-boot-starter-web") {
+        exclude module: "spring-boot-starter-tomcat"
+    }
+    compile("org.springframework.boot:spring-boot-starter-jetty")
+    // end::jetty[]
+    // tag::actuator[]
+    compile("org.springframework.boot:spring-boot-starter-actuator")
 
 
     // Tomcat plugin
