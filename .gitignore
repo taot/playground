@@ -6,3 +6,5 @@ target/
 .gradle/
 __pycache__/
 .ipynb_checkpoints/
+log/
+logs/
