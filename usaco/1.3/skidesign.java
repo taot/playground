@@ -17,36 +17,39 @@ class skidesign {
         PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(task + ".out")));
         StringTokenizer st = new StringTokenizer(f.readLine());
         N = Integer.parseInt(st.nextToken());
-        List<Integer> hills = new ArrayList<Integer>();
+        int[] hills = new int[N];
         for (int i = 0; i < N; i++) {
             st = new StringTokenizer(f.readLine());
-            int h = Integer.parseInt(st.nextToken());
-            hills.add(h);
+            hills[i] = Integer.parseInt(st.nextToken());
         }
 
-        Collections.sort(hills);
-        int cost = 0;
-        while (hills.size() > 1 && hills.get(hills.size() - 1) - hills.get(0) > 17) {
-            // System.out.println(hills.size());
-            // System.out.println(hills);
-            int diff = hills.get(hills.size() - 1) - hills.get(0) - 17;
-            if (diff > 0) {
-                if (diff % 2 == 0) {
-                    int x = diff / 2;
-                    cost += (x * x * 2);
-                } else {
-                    int x = diff / 2;
-                    int y = x + 1;
-                    cost += (x * x + y * y);
-                }
+        int minCost = Integer.MAX_VALUE;
+        for (int min = 0; min <= 100; min++) {
+            int cost = 0;
+            for (int i = 0; i < N; i++) {
+                cost += calcCost(hills[i], min);
             }
-            hills.remove(hills.size() - 1);
-            hills.remove(0);
+            if (cost < minCost) {
+                minCost = cost;
+            }
         }
+
         // System.out.println(hills.get(hills.size() - 1) - hills.get(0));
-        out.println(cost);
+        out.println(minCost);
         // System.out.println(cost);
 
         out.close();
+    }
+
+    private static int calcCost(int height, int min) {
+        if (height < min) {
+            int x = min - height;
+            return x * x;
+        }
+        if (height > min + 17) {
+            int x = height - min - 17;
+            return x * x;
+        }
+        return 0;
     }
 }
