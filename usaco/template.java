@@ -1,22 +1,41 @@
 /*
 ID: libra_k1
-LANG: JAVA
+LANG: C
 TASK: template
 */
-import java.io.*;
-import java.util.*;
 
-class template {
+#include <stdio.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 
-    private static String task = "template";
+char* test_name = "template";
 
-    public static void main (String [] args) throws IOException {
-        BufferedReader f = new BufferedReader(new FileReader(task + ".in"));
-        PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(task + ".out")));
-        StringTokenizer st = new StringTokenizer(f.readLine());
-        int i1 = Integer.parseInt(st.nextToken());
-        int i2 = Integer.parseInt(st.nextToken());
-        out.println(i1+i2);
-        out.close();
-    }
+char in_file[50];
+char out_file[50];
+FILE *in, *out;
+
+int N;
+int M;
+
+void create_filenames() {
+    strcpy(in_file, test_name);
+    strcat(in_file, ".in");
+    strcpy(out_file, test_name);
+    strcat(out_file, ".out");
+}
+
+void main(void) {
+
+    create_filenames();
+	in = fopen(in_file, "r");
+	out = fopen(out_file, "w");
+
+    fscanf(in, "%d", &N);
+    fscanf(in, "%d", &M);
+
+    fprintf(out, "NONE\n");
+
+	exit(0);
 }
