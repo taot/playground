@@ -28,6 +28,12 @@ class castle {
     static final int EAST_IDX = 2;
     static final int SOUTH_IDX = 3;
 
+    static int nRooms;
+    static List<Integer> roomSizes = new ArrayList<>();
+    static Node nodeOfWallToRemove;
+    static int roomSizeAfterRemoval;
+    static char wallDirection;
+
     public static void main (String [] args) throws IOException {
         BufferedReader f = new BufferedReader(new FileReader(task + ".in"));
         PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(task + ".out")));
@@ -43,19 +49,148 @@ class castle {
         }
 
         createGraph();
+        findComponents();
 
-        printGraph();
+        // printGraph(true);
+
+        // num of rooms
+        out.println(nRooms);
+
+        // largest room
+        int maxSize = -1;
+        for (Integer n : roomSizes) {
+            if (n > maxSize) {
+                maxSize = n;
+            }
+        }
+        out.println(maxSize);
+
+        // remove wall
+        removeWall();
+        out.println(roomSizeAfterRemoval);
+        out.println(String.format("%d %d %c", nodeOfWallToRemove.row + 1, nodeOfWallToRemove.col + 1, wallDirection));
 
         out.close();
     }
 
-    static void printGraph() {
+    static void removeWall() {
+        nodeOfWallToRemove = null;
+        roomSizeAfterRemoval = -1;
+        wallDirection = ' ';
+
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < M; j++) {
+                Node n = getNode(i, j);
+                if (i > 0 && n.neighbors[NORTH_IDX] == null) {
+                    Node north = getNode(i-1, j);
+                    if (n.component != north.component) {
+                        int size = roomSizes.get(n.component) + roomSizes.get(north.component);
+                        if (size > roomSizeAfterRemoval || (size == roomSizeAfterRemoval && shouldReplaceWall(nodeOfWallToRemove, n, 'N'))) {
+                            roomSizeAfterRemoval = size;
+                            nodeOfWallToRemove = n;
+                            wallDirection = 'N';
+                        }
+                    }
+                }
+                if (j < M-1 && n.neighbors[EAST_IDX] == null) {
+                    Node east = getNode(i, j+1);
+                    if (n.component != east.component) {
+                        int size = roomSizes.get(n.component) + roomSizes.get(east.component);
+                        if (size > roomSizeAfterRemoval || (size == roomSizeAfterRemoval && shouldReplaceWall(nodeOfWallToRemove, n, 'E'))) {
+                            roomSizeAfterRemoval = size;
+                            nodeOfWallToRemove = n;
+                            wallDirection = 'E';
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    static boolean shouldReplaceWall(Node orig, Node toReplace, char d2) {
+        if (orig.col < toReplace.col) {
+            return false;
+        }
+        if (orig.col > toReplace.col) {
+            return true;
+        }
+        if (orig.row > toReplace.row) {
+            return false;
+        }
+        if (orig.row < toReplace.row) {
+            return true;
+        }
+        if (d2 == 'N') {
+            return true;
+        }
+        return false;
+    }
+
+    static void findComponents() {
+        // clear
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < M; j++) {
+                Node n = getNode(i, j);
+                n.visited = false;
+                n.component = -1;
+            }
+        }
+        roomSizes.clear();
+
+        // start searching
+        Node notVisited = findNotVisited();
+        int component = 0;
+        Deque<Node> queue = new ArrayDeque<>();
+        while (notVisited != null) {
+            int roomSize = 0;
+            queue.add(notVisited);
+            notVisited.visited = true;
+            roomSize++;
+            while (! queue.isEmpty()) {
+                Node n = queue.poll();
+
+                n.component = component;
+                for (int i = 0; i < 4; i++) {
+                    Node m = n.neighbors[i];
+                    if (m != null && ! m.visited) {
+                        queue.add(m);
+                        m.visited = true;
+                        roomSize++;
+                    }
+                }
+            }
+            roomSizes.add(roomSize);
+
+            notVisited = findNotVisited();
+            component++;
+        }
+
+        nRooms = component;
+    }
+
+    static Node findNotVisited() {
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < M; j++) {
+                Node n = getNode(i, j);
+                if (! n.visited) {
+                    return n;
+                }
+            }
+        }
+        return null;
+    }
+
+    static void printGraph(boolean printComponent) {
         for (int i = 0; i < N; i++) {
             StringBuilder l1 = new StringBuilder();
             StringBuilder l2 = new StringBuilder();
             for (int j = 0; j < M; j++) {
                 Node n = getNode(i, j);
-                l1.append("#");
+                if (printComponent) {
+                    l1.append(n.component);
+                } else {
+                    l1.append("#");
+                }
                 if (n.neighbors[EAST_IDX] != null) {
                     l1.append("-");
                 } else {
@@ -125,7 +260,8 @@ class castle {
         public int row;
         public int col;
         public Node[] neighbors = new Node[4];
-        public boolean visisted = false;
+        public boolean visited = false;
+        public int component;
 
         public Node(int row, int col) {
             this.row = row;
