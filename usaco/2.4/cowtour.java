@@ -13,6 +13,8 @@ class cowtour {
     static Point[] points;
     static double[][] D;
     static int nComps;
+    static double[] diameters;
+    static double[] maxD;
 
     public static void main (String [] args) throws IOException {
         BufferedReader f = new BufferedReader(new FileReader(task + ".in"));
@@ -42,35 +44,68 @@ class cowtour {
             }
         }
 
-        // printD(D);
-
         findComponents();
-        // printComponents();
+        System.out.println("nComps: " + nComps);
+        diameters = new double[nComps];
+        System.out.println("diameters:");
+        for (int i = 0; i < nComps; i++) {
+            diameters[i] = calcDiameter(i, i);
+            System.out.print(diameters[i] + " ");
+        }
+        System.out.println();
 
-        double minDia = tryConnect();
+        maxD = new double[N];
+        System.out.println("maxD");
+        for (int i = 0; i < N; i++) {
+            double m = 0;
+            for (int j = 0; j < N; j++) {
+                if (D[i][j] > m) {
+                    m = D[i][j];
+                }
+            }
+            maxD[i] = m;
+            System.out.print(m + " ");
+        }
+        System.out.println();
+
+        double minDia = Double.MAX_VALUE;
+        for (int i = 0; i < nComps - 1; i++) {
+            double m1 = diameters[i];
+            for (int j = i+1; j < nComps; j++) {
+                double m2 = diameters[j];
+                for (int a = 0; a < N-1; a++) {
+                    Point pa = points[a];
+                    if (pa.comp != i) {
+                        continue;
+                    }
+                    for (int b = a+1; b < N; b++) {
+                        Point pb = points[b];
+                        if (pb.comp != j) {
+                            continue;
+                        }
+                        double m = max(m1, m2, pa.dist(pb) + maxD[a] + maxD[b]);
+                        if (m < minDia) {
+                            minDia = m;
+                        }
+                    }
+                }
+            }
+        }
+
         out.println(String.format("%.6f", minDia));
 
         out.close();
     }
 
-    static double tryConnect() {
-        double minDiameter = Double.MAX_VALUE;
-        for (int i = 0; i < N - 1; i++) {
-            for (int j = i; j < N; j++) {
-                Point p1 = points[i];
-                Point p2 = points[j];
-                if (p1.comp == p2.comp) {
-                    continue;
-                }
-                D[i][j] = D[j][i] = p1.dist(p2);
-                double dia = calcDiameter(p1.comp, p2.comp);
-                if (dia < minDiameter) {
-                    minDiameter = dia;
-                }
-                D[i][j] = D[j][i] = -1;
-            }
+    static double max(double d1, double d2, double d3) {
+        double max = d1;
+        if (d2 > max) {
+            max = d2;
         }
-        return minDiameter;
+        if (d3 > max) {
+            max = d3;
+        }
+        return max;
     }
 
     static double calcDiameter(int c1, int c2) {
@@ -101,6 +136,7 @@ class cowtour {
                     }
                     if (dist[i][j] < 0 || (d > 0 && dist[i][j] > d)) {
                         dist[i][j] = dist[j][i] = d;
+                        D[i][j] = D[j][i] = d;
                     }
                 }
             }
