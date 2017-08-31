@@ -7,7 +7,7 @@ def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
 def mse(a, b):
-    return np.square(a - b).sum() / 2
+    return np.square(a - b).mean() / 2
 
 class Network:
 
