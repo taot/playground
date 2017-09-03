@@ -18,8 +18,8 @@ def mse(x, y):
 def mse_p(x, y):
     return x - y
 
-def onehot(x, size):
-    a = np.zeros((size, 1))
+def onehot(x):
+    a = np.zeros((10, 1))
     a[x, 0] = 1
     return a
 
@@ -27,12 +27,12 @@ class Network:
 
     def __init__(self, dims):
         self.dims = dims
-        self.n_layers = len(dims) - 1
+        self.n_layers = len(dims)
         self.W = []     # weights
         self.B = []     # biases
         self.Z = []     # intermediate Z
         self.A = []     # activations
-        self.lr = 1e-4  # learning rate
+        self.lr = 1e-5  # learning rate
 
         # initialize weights and biases randomly
         for i in range(0, self.n_layers - 1):
@@ -67,16 +67,16 @@ class Network:
 
     def backprop(self, y):
         i = self.n_layers - 2
-        delta = mse_p(A[i], y) * sigmoid_p(Z[i])
+        delta = mse_p(self.A[i], y) * sigmoid_p(self.Z[i])
         self.update_weights(i, delta)
-        for i in (self.n_layers - 3, -1, -1):
+        for i in range(self.n_layers - 3, -1, -1):
             delta = np.matmul(self.W[i+1].transpose(), delta) * relu_p(self.Z[i])
             self.update_weights(i, delta)
 
     def update_weights(self, l, delta):
-        self.B -= (delta * self.lr)
+        self.B[l] -= (delta * self.lr)
         if l == 0:
             a = self.inputs
         else:
-            a = A[l-1]
-        self.W[l] -= (np.matmul(a, delta) * self.lr)
+            a = self.A[l-1]
+        self.W[l] -= (np.matmul(delta, a.transpose()) * self.lr)
