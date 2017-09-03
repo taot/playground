@@ -74,9 +74,12 @@ class Network:
             self.update_weights(i, delta)
 
     def update_weights(self, l, delta):
-        self.B[l] -= (delta * self.lr)
+        d = (delta * self.lr)
+        self.B[l] -= d
         if l == 0:
             a = self.inputs
         else:
             a = self.A[l-1]
-        self.W[l] -= (np.matmul(delta, a.transpose()) * self.lr)
+        d = (np.matmul(delta, a.transpose()) * self.lr)
+        self.W[l] -= d
+        pass
