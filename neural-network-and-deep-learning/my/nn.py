@@ -10,7 +10,8 @@ def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
 def sigmoid_p(x):
-    return 1 / (1 + np.exp(x))
+    # return 1 / (1 + np.exp(x))
+    return sigmoid(x) * (1 - sigmoid(x))
 
 def mse(x, y):
     return np.square(x - y).sum() / 2
@@ -36,9 +37,9 @@ class Network:
 
         # initialize weights and biases randomly
         for i in range(0, self.n_layers - 1):
-            w = np.random.rand(dims[i+1], dims[i])
+            w = (np.random.rand(dims[i+1], dims[i]) / 100)
             self.W.append(w)
-            b = np.random.rand(dims[i+1], 1)
+            b = (np.random.rand(dims[i+1], 1) / 100)
             self.B.append(b)
 
     def get_input_dim(self):

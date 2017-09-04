@@ -6,13 +6,36 @@ import mnist_image; reload(mnist_image)
 
 train, valid, test = mnist_loader.load_data()
 
-network = nn.Network([784, 20, 10])
+train_size = train[0].shape[0]
 
-network.forward(train[0][0].reshape((784,1)))
 
-print network.A[0].shape
+def get_reshape_input_vector(dataset, i):
+    return dataset[0][i].reshape((784, 1))
 
-y = train[1][0]
-y_oh = nn.onehot(y)
 
-network.backprop(y_oh)
+def get_output_vector(dataset, i):
+    y = dataset[1][i]
+    return nn.onehot(y)
+
+
+network = nn.Network([784, 100, 10])
+network.lr = 1e-4
+
+
+def epoch(net, n_epoch):
+    for i in range(0, train_size):
+        x = get_reshape_input_vector(train, i)
+        y = get_output_vector(train, i)
+        net.forward(x)
+        err = nn.mse(y, network.get_outputs())
+        print("epoch: %d, iter: %d, error: %f" % (n_epoch, i, err))
+        net.backprop(y)
+
+for i in range(0, 2):
+    epoch(network, i)
+
+lr = 1e-6
+for i in range(2, 4):
+    epoch(network, i)
+
+pass
