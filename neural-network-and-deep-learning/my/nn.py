@@ -1,4 +1,7 @@
 import numpy as np
+import os
+import datetime
+import pickle
 
 def relu(x):
     return np.maximum(x, 0)
@@ -26,6 +29,8 @@ def onehot(x):
 
 class Network:
 
+    save_path = "/home/taot/tmp/neural-network-and-deep-learning/"
+
     def __init__(self, dims):
         self.dims = dims
         self.n_layers = len(dims)
@@ -37,10 +42,35 @@ class Network:
 
         # initialize weights and biases randomly
         for i in range(0, self.n_layers - 1):
-            w = (np.random.rand(dims[i+1], dims[i]) / 100)
+            w = (np.random.rand(dims[i+1], dims[i]) / 25)
             self.W.append(w)
-            b = (np.random.rand(dims[i+1], 1) / 100)
+            b = (np.random.rand(dims[i+1], 1) / 80)
             self.B.append(b)
+
+    def save(self):
+        s_dt = str(datetime.datetime.now()).split(".")[0]
+        d = self.save_path + s_dt
+        d = d.replace(' ', '_')
+        os.makedirs(d)
+        # pickle.dump(self.dims, open(dir + '/dims'))
+        for i in range(0, len(self.W)):
+            w = self.W[i]
+            np.save(d + "/W_" + str(i), w, allow_pickle=False)
+        for i in range(0, len(self.B)):
+            b = self.B[i]
+            np.save(d + "/B_" + str(i), b, allow_pickle=False)
+        print('network saved to ' + d)
+
+    def load(self, subdir):
+        self.W = []
+        self.B = []
+        d = self.save_path + subdir
+        for i in range(0, self.n_layers - 1):
+            w = np.load(d + "/W_" + str(i) + ".npy", allow_pickle=False)
+            self.W.append(w)
+            b = np.load(d + "/B_" + str(i) + ".npy", allow_pickle=False)
+            self.B.append(b)
+        print('network loaded from ' + d)
 
     def get_input_dim(self):
         return self.dims[0]
