@@ -21,53 +21,68 @@ train_size = len(train)
 network = nn.Network([784, 100, 10])
 
 
-def validate(net, n_epoch, validation_set):
-    total_count = len(validation_set)
-    count = 0
-    for v in validation_set:
-        x = v[0]
-        y = v[1]
-        net.forward(x)
-        y0_v = net.get_outputs()
-        y0 = np.argmax(y0_v)
-        if y0 == y:
-            count += 1
-
-    print("epoch: %d, validation rate: %f" % (n_epoch, 1.0 * count / total_count))
-
-
-def epoch(net, n_epoch):
-    np.random.shuffle(train)
-    err_sum = 0.0
-    for i in range(0, train_size):
-        x = train[i][0]
-        y = train[i][1]
-        net.forward(x)
-        err = nn.mse(y, network.get_outputs())
-        err_sum += err
-        net.backprop(y)
-    print("epoch: %d, error: %f" % (n_epoch, err_sum / train_size))
-    validate(net, n_epoch, valid)
+# def validate(net, n_epoch, validation_set):
+#     total_count = len(validation_set)
+#     count = 0
+#     for v in validation_set:
+#         x = v[0]
+#         y = v[1]
+#         net.forward(x)
+#         y0_v = net.get_outputs()
+#         y0 = np.argmax(y0_v)
+#         if y0 == y:
+#             count += 1
+#
+#     print("epoch: %d, validation rate: %f" % (n_epoch, 1.0 * count / total_count))
+#
+#
+# def epoch(net, n_epoch):
+#     np.random.shuffle(train)
+#     err_sum = 0.0
+#     for i in range(0, train_size):
+#         x = train[i][0]
+#         y = train[i][1]
+#         net.forward(x)
+#         err = nn.mse(y, network.get_outputs())
+#         err_sum += err
+#         net.backprop(y)
+#     print("epoch: %d, error: %f" % (n_epoch, err_sum / train_size))
+#     validate(net, n_epoch, valid)
 
 
 print("Start training...")
 
+network.lr = 1e-2
+network.train(train, valid, n_epoch=5, batch_size=16)
+network.save()
+
+network.lr = 1e-3
+network.train(train, valid, n_epoch=5, batch_size=16)
+network.save()
+
 network.lr = 1e-4
-for i in range(0, 10):
-    epoch(network, i)
-
-network.lr = 5e-5
-for i in range(10, 20):
-    epoch(network, i)
-
-network.lr = 1e-5
-for i in range(20, 40):
-    epoch(network, i)
+network.train(train, valid, n_epoch=5, batch_size=16)
 network.save()
 
-network.lr = 5e-6
-for i in range(40, 50):
-    epoch(network, i)
-network.save()
+# network.lr = 3
+# network.train(train, valid, n_epoch=5)
+
+# network.lr = 1e-4
+# for i in range(0, 10):
+#     epoch(network, i)
+#
+# network.lr = 5e-5
+# for i in range(10, 20):
+#     epoch(network, i)
+#
+# network.lr = 1e-5
+# for i in range(20, 40):
+#     epoch(network, i)
+# network.save()
+#
+# network.lr = 5e-6
+# for i in range(40, 50):
+#     epoch(network, i)
+# network.save()
 
 pass

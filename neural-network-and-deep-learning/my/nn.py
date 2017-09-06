@@ -96,21 +96,93 @@ class Network:
                 a = sigmoid(z)
             self.A.append(a)
 
+    def train(self, training_data, validation_data=None, batch_size=1, n_epoch=1):
+        train_size = len(training_data)
+        for epoch in xrange(0, n_epoch):
+            np.random.shuffle(training_data)
+            batches = [training_data[k : k+batch_size]
+                       for k in xrange(0, train_size, batch_size)]
+            err_sum = 0.0
+            for batch in batches:
+                nabla_W = None
+                nabla_B = None
+                for t in batch:
+                    x = t[0]
+                    y = t[1]
+                    self.forward(x)
+                    err = mse(y, self.get_outputs())
+                    err_sum += err
+                    nabla_w, nabla_b = self.backprop(y)
+
+                    if nabla_W is None:
+                        nabla_W = nabla_w
+                    else:
+                        for i in range(0, len(nabla_W)):
+                            nabla_W[i] = nabla_W[i] + nabla_w[i]
+
+                    if nabla_B is None:
+                        nabla_B = nabla_b
+                    else:
+                        for i in range(0, len(nabla_B)):
+                            nabla_B[i] = nabla_B[i] + nabla_b[i]
+
+                # update weights and biases
+                for i in range(0, self.n_layers - 1):
+                    self.W[i] = self.W[i] - self.lr * nabla_W[i]
+                    self.B[i] = self.B[i] - self.lr * nabla_B[i]
+
+            # print error rate
+            print("epoch: %d, error: %f" % (epoch, err_sum / train_size))
+
+            # validation
+            if validation_data is not None:
+                total_count = len(validation_data)
+                count = 0
+                for v in validation_data:
+                    x = v[0]
+                    y = v[1]
+                    self.forward(x)
+                    y0_v = self.get_outputs()
+                    y0 = np.argmax(y0_v)
+                    if y0 == y:
+                        count += 1
+
+                print("epoch: %d, validation rate: %f" % (epoch, 1.0 * count / total_count))
+
     def backprop(self, y):
+        nabla_w = []
+        nabla_b = []
         i = self.n_layers - 2
+
+        # a = self.A[i]
         delta = mse_p(self.A[i], y) * sigmoid_p(self.Z[i])
-        self.update_weights(i, delta)
+        nw = np.matmul(delta, self.A[i-1].transpose())
+        nabla_w.append(nw)
+        nabla_b.append(delta)
+
+        # self.update_weights(i, delta)
         for i in range(self.n_layers - 3, -1, -1):
             delta = np.matmul(self.W[i+1].transpose(), delta) * relu_p(self.Z[i])
-            self.update_weights(i, delta)
+            if i == 0:
+                a = self.inputs
+            else:
+                a = self.A[i - 1]
+            nw = np.matmul(delta, a.transpose())
+            nabla_w.append(nw)
+            nabla_b.append(delta)
 
-    def update_weights(self, l, delta):
-        d = (delta * self.lr)
-        self.B[l] -= d
-        if l == 0:
-            a = self.inputs
-        else:
-            a = self.A[l-1]
-        d = (np.matmul(delta, a.transpose()) * self.lr)
-        self.W[l] -= d
-        pass
+        nabla_w.reverse()
+        nabla_b.reverse()
+
+        return nabla_w, nabla_b
+
+    # def update_weights(self, l, delta):
+    #     d = (delta * self.lr)
+    #     self.B[l] -= d
+    #     if l == 0:
+    #         a = self.inputs
+    #     else:
+    #         a = self.A[l-1]
+    #     d = (np.matmul(delta, a.transpose()) * self.lr)
+    #     self.W[l] -= d
+    #     pass
