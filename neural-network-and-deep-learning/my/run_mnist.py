@@ -64,6 +64,10 @@ network.lr = 1e-4
 network.train(train, valid, n_epoch=5, batch_size=16)
 network.save()
 
+network.lr = 1e-5
+network.train(train, valid, n_epoch=15, batch_size=16)
+network.save()
+
 # network.lr = 3
 # network.train(train, valid, n_epoch=5)
 
