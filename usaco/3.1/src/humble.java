@@ -15,10 +15,14 @@ class humble {
 
     static int[] primes;
 
-    static int[] prods;
+    static int MAX = 2147483647 / 2;
+
+    static int hums[] = new int[100001];
+    static int nhum = 0;
+    static int pindex[] = new int[100];
 
     public static void main (String [] args) throws IOException {
-        BufferedReader f = new BufferedReader(new FileReader(task + ".in2"));
+        BufferedReader f = new BufferedReader(new FileReader(task + ".in"));
         PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(task + ".out")));
         StringTokenizer st = new StringTokenizer(f.readLine());
         K = Integer.parseInt(st.nextToken());
@@ -31,35 +35,36 @@ class humble {
         }
 
         long start = System.currentTimeMillis();
-        int res = dp();
+        find();
+        System.out.println(hums[nhum-1]);
+        out.println(hums[nhum-1]);
+
         System.out.println("duration: " + (System.currentTimeMillis() - start) + " ms");
 
-        System.out.println(res);
 
         out.close();
     }
 
-    static int MAX = 2147483647 / 4;
+    static void find() {
+        hums[0] = 1;
+        nhum = 1;
 
-    static int dp() {
-        prods = new int[MAX];
-        prods[0] = 0;
-        prods[1] = 1;
-        int count = 0;
-        for (int i = 1; i < MAX-1; i++) {
-            for (int j = 0; j < K; j++) {
-                int p = primes[j];
-                if (i % p == 0 && prods[i / p] == 1) {
-                    prods[i] = 1;
-                    count++;
-                    if (count == N) {
-                        return i;
-                    } else {
-                        break;
-                    }
+        while (nhum < N+1) {
+            for (int i = 0; i < K; i++) {
+                while (hums[pindex[i]] * primes[i] <= hums[nhum-1]) {
+                    pindex[i]++;
                 }
             }
+            int min_i = 0;
+            int min = hums[pindex[min_i]] * primes[min_i];
+            for (int i = 1; i < K; i++) {
+                if (min > hums[pindex[i]] * primes[i]) {
+                    min_i = i;
+                    min = hums[pindex[i]] * primes[i];
+                }
+            }
+            nhum++;
+            hums[nhum-1] = min;
         }
-        return -1;
     }
 }
