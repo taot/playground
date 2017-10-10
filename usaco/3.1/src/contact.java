@@ -6,6 +6,7 @@ TASK: contact
 import java.io.*;
 import java.util.*;
 
+
 class contact {
 
     private static String task = "contact";
@@ -13,10 +14,11 @@ class contact {
     static int A, B, N;
     static String seq;
     static char[] chars;
-    static Map<String, Integer> totalMap = new TreeMap<>();
-    static Map<String, Integer> currentMap = new TreeMap<>();
+    static TrieNode root = new TrieNode();
 
     public static void main (String [] args) throws IOException {
+        long start = System.currentTimeMillis();
+
         BufferedReader f = new BufferedReader(new FileReader(task + ".in"));
         PrintStream out = new PrintStream(new File(task + ".out"));
         StringTokenizer st = new StringTokenizer(f.readLine());
@@ -31,128 +33,112 @@ class contact {
         }
         chars = sb.toString().toCharArray();
 
-        long start = System.currentTimeMillis();
-        find();
-
+        constructTree();
+        sumUp(root);
         print(System.out);
         print(out);
+
         System.out.println("Duration: " + (System.currentTimeMillis() - start) + " ms");
 
         out.close();
+        System.exit(0);
     }
 
     private static void print(PrintStream ps) {
-        Map<Integer, List<String>> results = new TreeMap<>(new Comparator<Integer>() {
-            @Override
-            public int compare(Integer o1, Integer o2) {
-                return -1 * o1.compareTo(o2);
-            }
-        });
-        for (String k : totalMap.keySet()) {
-            if (k.length() < A || k.length() > B) {
-                continue;
-            }
-            int count = totalMap.get(k);
-            List<String> list = results.get(count);
-            if (list == null) {
-                list = new ArrayList<>();
-                results.put(count, list);
-            }
-            list.add(k);
-        }
-        for (Integer k : results.keySet()) {
-            List<String> list = results.get(k);
-            Collections.sort(list, new Comparator<String>() {
-                @Override
-                public int compare(String o1, String o2) {
-                    if (o1.length() < o2.length()) {
-                        return -1;
-                    } else if (o1.length() > o2.length()) {
-                        return 1;
-                    } else {
-                        return o1.compareTo(o2);
-                    }
-                }
-            });
-        }
+        Map<Integer, List<String>> map = new TreeMap<>((Integer t1, Integer t2) -> -1 * t1.compareTo(t2) );
+        collectForPrint(root.left, "0", map);
+        collectForPrint(root.right, "1", map);
+
         int count = 0;
-        for (Integer k : results.keySet()) {
-            if (count >= N) {
+        for (Integer k : map.keySet()) {
+            count++;
+            if (count > N) {
                 break;
             }
-            count++;
-            ps.println(k);
-            boolean first = true;
-            for (String s : results.get(k)) {
-                if (first) {
-                    first = false;
+            ps.print(k);
+            List<String> list = map.get(k);
+            Collections.sort(list, (String s1, String s2) -> {
+                if (s1.length() < s2.length()) {
+                    return -1;
+                } else if (s1.length() > s2.length()) {
+                    return 1;
+                } else {
+                    return s1.compareTo(s2);
+                }
+            });
+
+            for (int i = 0; i < list.size(); i++) {
+                if (i % 6 == 0) {
+                    ps.println();
                 } else {
                     ps.print(" ");
                 }
-                ps.print(s);
+                ps.print(list.get(i));
             }
             ps.println();
         }
     }
 
-    private static void find() {
+    private static void collectForPrint(TrieNode node, String path, Map<Integer, List<String>> map) {
+        if (node == null) {
+            return;
+        }
+        collectForPrint(node.left, path + '0', map);
+        collectForPrint(node.right, path + '1', map);
+        if (path.length() < A || path.length() > B) {
+            return;
+        }
+        List<String> list = map.get(node.sumCount);
+        if (list == null) {
+            list = new ArrayList<>();
+            map.put(node.sumCount, list);
+        }
+        list.add(path);
+
+    }
+
+    private static int sumUp(TrieNode node) {
+        if (node == null) {
+            return 0;
+        }
+        int c1 = sumUp(node.left);
+        int c2 = sumUp(node.right);
+        node.sumCount = c1 + c2 + node.count;
+        return node.sumCount;
+    }
+
+    private static void constructTree() {
         for (int i = 0; i < chars.length; i++) {
-            remove(currentMap, B);
-            currentMap = increment(currentMap, chars[i]);
-            merge(currentMap, totalMap);
-        }
-    }
-
-    private static Map<String, Integer> increment(Map<String, Integer> map, char c) {
-        Map<String, Integer> newMap = new TreeMap<>();
-        for (String k : map.keySet()) {
-            newMap.put(k + c, map.get(k));
-        }
-        newMap.put(String.valueOf(c), 1);
-        return newMap;
-    }
-
-    private static void merge(Map<String, Integer> from, Map<String, Integer> to) {
-        for (String k : from.keySet()) {
-            if (to.containsKey(k)) {
-                to.put(k, from.get(k) + to.get(k));
-            } else {
-                to.put(k, from.get(k));
+            int len = Math.min(B, chars.length - i);
+            TrieNode node = root;
+            for (int j = 0; j < len; j++) {
+                if (chars[i + j] == '0') {
+                    if (node.left == null) {
+                        node.left = new TrieNode();
+                    }
+                    node = node.left;
+                } else {
+                    if (node.right == null) {
+                        node.right = new TrieNode();
+                    }
+                    node = node.right;
+                }
+                if (j == len - 1) {
+                    node.count++;
+                }
             }
         }
     }
 
-    private static void remove(Map<String, Integer> map, int len) {
-        Set<String> keySet = new TreeSet<>(map.keySet());
-        for (String k : keySet) {
-            if (k.length() >= len) {
-                map.remove(k);
-            }
-        }
-    }
+    static class TrieNode {
+        TrieNode left;
+        TrieNode right;
+        int count;
+        int sumCount;
 
-    private static int encode(char c) {
-        if (c == '0') {
-            return 3;
-        } else {
-            return 1;
+        public TrieNode() {
+            left = right = null;
+            count = sumCount = 0;
         }
-    }
-
-    private static int encode(int encoded, char c) {
-        int n = 0;
-        if (c == '1') {
-            n = 1;
-        }
-        return (encoded << 1) + n;
-    }
-
-    private static String decode(int encoded) {
-        StringBuilder sb = new StringBuilder();
-        while (encoded > 1) {
-            sb.append(encoded % 2);
-            encoded /= 2;
-        }
-        return sb.reverse().toString();
     }
 }
