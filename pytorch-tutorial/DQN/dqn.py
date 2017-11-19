@@ -19,8 +19,8 @@ Tensor = FloatTensor
 class DNN(nn.Module):
     def __init__(self):
         super(DNN, self).__init__()
-        self.fc1 = nn.Linear(4, 4)
-        self.fc2 = nn.Linear(4, 2)
+        self.fc1 = nn.Linear(4, 50)
+        self.fc2 = nn.Linear(50, 2)
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
@@ -125,7 +125,7 @@ def simulate():
         if done:
             next_state = None
         else:
-            next_state = Tensor(next_state).view(1, -1)
+            next_state = Tensor(state).view(1, -1)
         reward = Tensor([reward])
         memory.push(state, action, next_state, reward)
         loss = optimize()
