@@ -112,10 +112,10 @@ for i_episode in range(400):
         s_, r, done, info = env.step(a)
 
         # modify the reward
-        x, x_dot, theta, theta_dot = s_
-        r1 = (env.x_threshold - abs(x)) / env.x_threshold - 0.8
-        r2 = (env.theta_threshold_radians - abs(theta)) / env.theta_threshold_radians - 0.5
-        r = r1 + r2
+        # x, x_dot, theta, theta_dot = s_
+        # r1 = (env.x_threshold - abs(x)) / env.x_threshold - 0.8
+        # r2 = (env.theta_threshold_radians - abs(theta)) / env.theta_threshold_radians - 0.5
+        # r = r1 + r2
 
         dqn.store_transition(s, a, r, s_)
 
