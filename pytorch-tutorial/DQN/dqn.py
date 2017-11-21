@@ -20,7 +20,9 @@ class DNN(nn.Module):
     def __init__(self):
         super(DNN, self).__init__()
         self.fc1 = nn.Linear(4, 50)
+        self.fc1.weight.data.normal_(0, 0.1)
         self.fc2 = nn.Linear(50, 2)
+        self.fc2.weight.data.normal_(0, 0.1)
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
