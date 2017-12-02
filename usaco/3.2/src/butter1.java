@@ -49,6 +49,8 @@ class butter1 {
         // calculate
         floyd();
 
+
+
 //        System.out.println("graph:");
 //        printGraph(graph);
 //        System.out.println("dists:");
@@ -63,6 +65,7 @@ class butter1 {
             if (sum < minSum) {
                 minSum = sum;
             }
+            System.out.println(b + ": " + sum);
         }
 
         System.out.println(minSum);

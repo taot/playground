@@ -1,17 +1,18 @@
+import java.util.Comparator;
+
 public class fibheap {
 
     public static void main(String[] args) {
         int count = 10000;
 //        test(count);
 //        test2(count);
-        test_union2(count, 50);
+        test_union2(count, 300);
     }
-
 
     private static void test_union2(int count, int unionCount) {
         long start = System.currentTimeMillis();
 
-        FibHeap h1 = new FibHeap();
+        FibHeap<Integer> h1 = new FibHeap();
         for (int i = count - 1; i >= 0; i--) {
             h1.insert(i);
         }
@@ -45,7 +46,7 @@ public class fibheap {
             h2.insert(i);
         }
 
-        FibHeap h = h1.union(h2);
+        FibHeap<Integer> h = h1.union(h2);
 
         for (int i = 0; i < count * 2; i++) {
             Integer k = h.extractMin();
@@ -83,7 +84,7 @@ public class fibheap {
     private static void test(int count) {
         long start = System.currentTimeMillis();
 
-        FibHeap h = new FibHeap();
+        FibHeap<Integer> h = new FibHeap<>();
         for (int i = count - 1; i >= 0; i--) {
             h.insert(i);
         }
@@ -95,8 +96,8 @@ public class fibheap {
         System.out.println("test1 duration: " + duration + " ms");
     }
 
-    static class FibNode {
-        int key;
+    static class FibNode<E> {
+        E key;
         int degree;
         FibNode p;
         FibNode child;
@@ -114,23 +115,29 @@ public class fibheap {
         }
     }
 
-    static class FibHeap {
+    static class FibHeap<E> {
 
         public static double LOG_PHI = Math.log((1 + Math.sqrt(5)) / 2);
 
-        FibNode min;
+        FibNode<E> min;
         int n;
         boolean destroyed;
+        Comparator<E> comparator;
 
         public FibHeap() {
+            this(null);
+        }
+
+        public FibHeap(Comparator<E> comparator) {
+            this.comparator = comparator;
             this.min = null;
             this.n = 0;
         }
 
-        public void insert(int key) {
+        public void insert(E key) {
             check();
 
-            FibNode node = new FibNode();
+            FibNode<E> node = new FibNode<E>();
             node.key = key;
             node.degree = 0;
             node.p = null;
@@ -144,7 +151,7 @@ public class fibheap {
                 // insert node into root list
                 insertIntoList(node, this.min);
 
-                if (node.key < this.min.key) {
+                if (compare(node.key, this.min.key) < 0) {
                     this.min = node;
                 }
             }
@@ -152,15 +159,15 @@ public class fibheap {
             this.n++;
         }
 
-        public Integer getMin() {
+        public E getMin() {
             check();
             return this.min == null ? null : this.min.key;
         }
 
-        public FibHeap union(FibHeap h) {
+        public FibHeap union(FibHeap<E> h) {
             check();
 
-            FibHeap nh = new FibHeap();
+            FibHeap<E> nh = new FibHeap<E>();
 
             if (this.min == null) {
                 nh.min = h.min;
@@ -168,7 +175,7 @@ public class fibheap {
                 nh.min = this.min;
             } else {
                 concat(this.min, h.min);
-                nh.min = this.min.key < h.min.key ? this.min : h.min;
+                nh.min = compare(this.min.key, h.min.key) < 0 ? this.min : h.min;
             }
 
             nh.n = this.n + h.n;
@@ -177,10 +184,10 @@ public class fibheap {
             return nh;
         }
 
-        public Integer extractMin() {
+        public E extractMin() {
             check();
 
-            FibNode z = this.min;
+            FibNode<E> z = this.min;
             if (z == null) {
                 return null;
             }
@@ -213,7 +220,7 @@ public class fibheap {
 
         private void consolidate() {
             int D = computeD();
-            FibNode[] A = new FibNode[D + 1];
+            FibNode<E>[] A = new FibNode[D + 1];
 
             FibNode w = this.min;
             if (w == null) {
@@ -223,11 +230,11 @@ public class fibheap {
             FibNode sentry = w;
             do {
                 // for each node w in root list
-                FibNode x = w;
+                FibNode<E> x = w;
                 int d = x.degree;
                 while (A[d] != null) {
-                    FibNode y = A[d];
-                    if (x.key > y.key) {
+                    FibNode<E> y = A[d];
+                    if (compare(x.key, y.key) > 0) {
                         FibNode tmp = x;
                         x = y;
                         y = tmp;
@@ -266,12 +273,19 @@ public class fibheap {
                         this.min.right = this.min.left = this.min;
                     } else {
                         insertIntoList(A[i], this.min);
-                        if (A[i].key < this.min.key) {
+                        if (compare(A[i].key, this.min.key) < 0) {
                             this.min = A[i];
                         }
                     }
                 }
             }
+        }
+
+        private int compare(E o1, E o2) {
+            if (this.comparator != null) {
+                return this.comparator.compare(o1, o2);
+            }
+            return ((Comparable<E>) o1).compareTo(o2);
         }
 
         private int computeD() {
