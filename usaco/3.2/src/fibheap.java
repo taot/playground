@@ -6,7 +6,26 @@ public class fibheap {
         int count = 10000;
 //        test(count);
 //        test2(count);
-        test_union2(count, 300);
+//        test_union2(count, 300);
+        test_decreaseKey(count);
+    }
+
+    private static void test_decreaseKey(int count) {
+        FibHeap.Node<Integer>[] nodes = new FibHeap.Node[count];
+        for (int i = 0; i < count; i++) {
+            nodes[i] = new FibHeap.Node(i + 10);
+        }
+        FibHeap<Integer> h = new FibHeap();
+        for (int i = 0; i < count; i++) {
+            h.insert(nodes[i]);
+        }
+        for (int i = count - 1; i >= 0; i--) {
+            h.decreaseKey(nodes[i], nodes[i].key - 5);
+        }
+        for (int i = 0; i < count; i++) {
+            FibHeap.Node<Integer> k = h.extractMin();
+            System.out.println(k);
+        }
     }
 
     private static void test_union2(int count, int unionCount) {
@@ -14,21 +33,20 @@ public class fibheap {
 
         FibHeap<Integer> h1 = new FibHeap();
         for (int i = count - 1; i >= 0; i--) {
-            h1.insert(i);
+            h1.insert(new FibHeap.Node(i));
         }
         for (int j = 1; j <= unionCount; j++) {
             FibHeap h2 = new FibHeap();
             for (int i = count * (j + 1) - 1; i >= count * j; i--) {
-                h2.insert(i);
+                h2.insert(new FibHeap.Node(i));
             }
             h1 = h1.union(h2);
 
             for (int i = 0; i < count; i++) {
-                Integer k = h1.extractMin();
+                FibHeap.Node<Integer> k = h1.extractMin();
 //                System.out.println(k);
             }
         }
-
 
         long duration = System.currentTimeMillis() - start;
         System.out.println("test_union2 duration: " + duration + " ms");
@@ -40,16 +58,16 @@ public class fibheap {
         FibHeap h1 = new FibHeap();
         FibHeap h2 = new FibHeap();
         for (int i = count - 1; i >= 0; i--) {
-            h1.insert(i);
+            h1.insert(new FibHeap.Node(i));
         }
         for (int i = count * 2 - 1; i >= count; i--) {
-            h2.insert(i);
+            h2.insert(new FibHeap.Node(i));
         }
 
         FibHeap<Integer> h = h1.union(h2);
 
         for (int i = 0; i < count * 2; i++) {
-            Integer k = h.extractMin();
+            FibHeap.Node<Integer> k = h.extractMin();
             System.out.println(k);
         }
 
@@ -86,40 +104,44 @@ public class fibheap {
 
         FibHeap<Integer> h = new FibHeap<>();
         for (int i = count - 1; i >= 0; i--) {
-            h.insert(i);
+            h.insert(new FibHeap.Node(i));
         }
         for (int i = 0; i < count; i++) {
-            Integer k = h.extractMin();
+            FibHeap.Node<Integer> k = h.extractMin();
         }
 
         long duration = System.currentTimeMillis() - start;
         System.out.println("test1 duration: " + duration + " ms");
     }
 
-    static class FibNode<E> {
-        E key;
-        int degree;
-        FibNode p;
-        FibNode child;
-        FibNode left;
-        FibNode right;
-        boolean mark;
-
-        @Override
-        public String toString() {
-            return "FibNode{" +
-                    "key=" + key +
-                    ", degree=" + degree +
-                    ", mark=" + mark +
-                    '}';
-        }
-    }
-
     static class FibHeap<E> {
 
         public static double LOG_PHI = Math.log((1 + Math.sqrt(5)) / 2);
 
-        FibNode<E> min;
+        static class Node<E> {
+            E key;
+            int degree;
+            Node p;
+            Node child;
+            Node left;
+            Node right;
+            boolean mark;
+
+            public Node(E key) {
+                this.key = key;
+            }
+
+            @Override
+            public String toString() {
+                return "Node{" +
+                        "key=" + key +
+                        ", degree=" + degree +
+                        ", mark=" + mark +
+                        '}';
+            }
+        }
+
+        Node<E> min;
         int n;
         boolean destroyed;
         Comparator<E> comparator;
@@ -134,11 +156,9 @@ public class fibheap {
             this.n = 0;
         }
 
-        public void insert(E key) {
+        public void insert(Node<E> node) {
             check();
 
-            FibNode<E> node = new FibNode<E>();
-            node.key = key;
             node.degree = 0;
             node.p = null;
             node.child = null;
@@ -159,9 +179,9 @@ public class fibheap {
             this.n++;
         }
 
-        public E getMin() {
+        public Node<E> getMin() {
             check();
-            return this.min == null ? null : this.min.key;
+            return this.min == null ? null : this.min;
         }
 
         public FibHeap union(FibHeap<E> h) {
@@ -184,17 +204,17 @@ public class fibheap {
             return nh;
         }
 
-        public E extractMin() {
+        public Node<E> extractMin() {
             check();
 
-            FibNode<E> z = this.min;
+            Node<E> z = this.min;
             if (z == null) {
                 return null;
             }
 
             // add z's children to root list
             if (z.child != null) {
-                FibNode n = z.child;
+                Node n = z.child;
                 do {
                     n.p = null;
                     n = n.right;
@@ -215,27 +235,80 @@ public class fibheap {
 
             this.n -= 1;
 
-            return z.key;
+            return z;
+        }
+
+        public void decreaseKey(Node<E> node, E key) {
+            if (compare(key, node.key) > 0) {
+                throw new IllegalArgumentException("new key is greater than current key");
+            }
+            node.key = key;
+            Node<E> y = node.p;
+
+            if (y != null && compare(node.key, y.key) < 0) {
+                cut(node, y);
+                cascadingCut(y);
+            }
+
+            if (compare(node.key, this.min.key) < 0) {
+                this.min = node;
+            }
+        }
+
+        private void cut(Node<E> x, Node<E> y) {
+            // remove x from child list of y
+            if (x.left != x) {
+                x.left.right = x.right;
+                x.right.left = x.left;
+            }
+            if (y.child == x) {
+                if (x.left == x) {
+                    y.child = null;
+                } else {
+                    y.child = x.left;
+                }
+            }
+            y.degree--;
+
+            // add x to root list
+            x.p = null;
+            x.mark = false;
+            x.left = this.min;
+            x.right = this.min.right;
+            this.min.right.left = x;
+            this.min.right = x;
+        }
+
+        private void cascadingCut(Node<E> y) {
+            Node<E> z = y.p;
+            if (z != null) {
+                if (! y.mark) {
+                    y.mark = true;
+                } else {
+                    cut(y, z);
+                    cascadingCut(z);
+                }
+            }
         }
 
         private void consolidate() {
             int D = computeD();
-            FibNode<E>[] A = new FibNode[D + 1];
+            Node<E>[] A = new Node[D + 1];
 
-            FibNode w = this.min;
+            Node w = this.min;
             if (w == null) {
                 return;
             }
 
-            FibNode sentry = w;
+            Node sentry = w;
             do {
                 // for each node w in root list
-                FibNode<E> x = w;
+                Node<E> x = w;
                 int d = x.degree;
                 while (A[d] != null) {
-                    FibNode<E> y = A[d];
+                    Node<E> y = A[d];
                     if (compare(x.key, y.key) > 0) {
-                        FibNode tmp = x;
+                        Node tmp = x;
                         x = y;
                         y = tmp;
                     }
@@ -292,7 +365,7 @@ public class fibheap {
             return (int) (Math.log(this.n) / LOG_PHI);
         }
 
-        private void concat(FibNode n1, FibNode n2) {
+        private void concat(Node n1, Node n2) {
             // concatenate two lists
             n1.right.left = n2.left;
             n2.left.right = n1.right;
@@ -300,7 +373,7 @@ public class fibheap {
             n2.left = n1;
         }
 
-        private void insertIntoList(FibNode node, FibNode list) {
+        private void insertIntoList(Node node, Node list) {
             if (list == null) {
                 node.right = node.left = node;
             } else {

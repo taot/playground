@@ -10,7 +10,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.StringTokenizer;
 
-class butter {
+class butter2 {
 
     private static String task = "butter";
 
@@ -75,9 +75,9 @@ class butter {
     }
 
     static void dijkstra(int src) {
-        FibHeap<Vertex> heap = new FibHeap<Vertex>(new Comparator<Vertex>() {
+        FibHeap<Edge> heap = new FibHeap<Edge>(new Comparator<Edge>() {
             @Override
-            public int compare(Vertex o1, Vertex o2) {
+            public int compare(Edge o1, Edge o2) {
                 return o1.length - o2.length;
             }
         });
@@ -86,35 +86,23 @@ class butter {
         for (int i = 0; i < P; i++) {
             dists[i] = 0;
         }
-        FibHeap.Node<Vertex>[] vertices = new FibHeap.Node[P];
         for (Edge e : graph[src]) {
-            FibHeap.Node<Vertex> vnode = new FibHeap.Node(new Vertex(e.t, e.length));
-            vertices[e.t] = vnode;
-            heap.insert(vnode);
+            heap.insert(e);
             dists[e.t] = e.length;
         }
         visited[src] = true;
         visitCount++;
 
         while (visitCount < P) {
-            Vertex v;
+            Edge e;
             do {
-                FibHeap.Node<Vertex> vnode = heap.extractMin();
-                v = vnode.key;
-            } while (visited[v.t]);
-            int n = v.t;
+                e = heap.extractMin();
+            } while (visited[e.t]);
+            int n = e.t;
             for (Edge f : graph[n]) {
-                if (dists[f.t] == 0 && src != f.t || f.length + v.length < dists[f.t]) {
-                    dists[f.t] = f.length + v.length;
-                    if (vertices[f.t] == null) {
-                        FibHeap.Node<Vertex> vnode = new FibHeap.Node(new Vertex(f.t, dists[f.t]));
-                        vertices[f.t] = vnode;
-                        heap.insert(vnode);
-                    } else {
-                        FibHeap.Node<Vertex> vnode = vertices[f.t];
-                        Vertex v1 = new Vertex(f.t, dists[f.t]);
-                        heap.decreaseKey(vnode, v1);
-                    }
+                if (dists[f.t] == 0 && src != f.t || f.length + e.length < dists[f.t]) {
+                    dists[f.t] = f.length + e.length;
+                    heap.insert(new Edge(src, f.t, dists[f.t]));
                 }
             }
 
@@ -144,20 +132,21 @@ class butter {
         }
     }
 
-    static class Vertex {
-        final int t;
-        final int length;
-
-        public Vertex(int t, int length) {
-            this.t = t;
-            this.length = length;
-        }
+    static class FibNode<E> {
+        E key;
+        int degree;
+        FibNode p;
+        FibNode child;
+        FibNode left;
+        FibNode right;
+        boolean mark;
 
         @Override
         public String toString() {
-            return "Edge{" +
-                    "t=" + t +
-                    ", length=" + length +
+            return "Node{" +
+                    "key=" + key +
+                    ", degree=" + degree +
+                    ", mark=" + mark +
                     '}';
         }
     }
@@ -166,30 +155,7 @@ class butter {
 
         public static double LOG_PHI = Math.log((1 + Math.sqrt(5)) / 2);
 
-        static class Node<E> {
-            E key;
-            int degree;
-            Node p;
-            Node child;
-            Node left;
-            Node right;
-            boolean mark;
-
-            public Node(E key) {
-                this.key = key;
-            }
-
-            @Override
-            public String toString() {
-                return "Node{" +
-                        "key=" + key +
-                        ", degree=" + degree +
-                        ", mark=" + mark +
-                        '}';
-            }
-        }
-
-        Node<E> min;
+        FibNode<E> min;
         int n;
         boolean destroyed;
         Comparator<E> comparator;
@@ -204,9 +170,11 @@ class butter {
             this.n = 0;
         }
 
-        public void insert(Node<E> node) {
+        public void insert(E key) {
             check();
 
+            FibNode<E> node = new FibNode<E>();
+            node.key = key;
             node.degree = 0;
             node.p = null;
             node.child = null;
@@ -227,9 +195,9 @@ class butter {
             this.n++;
         }
 
-        public Node<E> getMin() {
+        public E getMin() {
             check();
-            return this.min == null ? null : this.min;
+            return this.min == null ? null : this.min.key;
         }
 
         public FibHeap union(FibHeap<E> h) {
@@ -252,17 +220,17 @@ class butter {
             return nh;
         }
 
-        public Node<E> extractMin() {
+        public E extractMin() {
             check();
 
-            Node<E> z = this.min;
+            FibNode<E> z = this.min;
             if (z == null) {
                 return null;
             }
 
             // add z's children to root list
             if (z.child != null) {
-                Node n = z.child;
+                FibNode n = z.child;
                 do {
                     n.p = null;
                     n = n.right;
@@ -283,80 +251,27 @@ class butter {
 
             this.n -= 1;
 
-            return z;
-        }
-
-        public void decreaseKey(Node<E> node, E key) {
-            if (compare(key, node.key) > 0) {
-                throw new IllegalArgumentException("new key is greater than current key");
-            }
-            node.key = key;
-            Node<E> y = node.p;
-
-            if (y != null && compare(node.key, y.key) < 0) {
-                cut(node, y);
-                cascadingCut(y);
-            }
-
-            if (compare(node.key, this.min.key) < 0) {
-                this.min = node;
-            }
-        }
-
-        private void cut(Node<E> x, Node<E> y) {
-            // remove x from child list of y
-            if (x.left != x) {
-                x.left.right = x.right;
-                x.right.left = x.left;
-            }
-            if (y.child == x) {
-                if (x.left == x) {
-                    y.child = null;
-                } else {
-                    y.child = x.left;
-                }
-            }
-            y.degree--;
-
-            // add x to root list
-            x.p = null;
-            x.mark = false;
-            x.left = this.min;
-            x.right = this.min.right;
-            this.min.right.left = x;
-            this.min.right = x;
-        }
-
-        private void cascadingCut(Node<E> y) {
-            Node<E> z = y.p;
-            if (z != null) {
-                if (! y.mark) {
-                    y.mark = true;
-                } else {
-                    cut(y, z);
-                    cascadingCut(z);
-                }
-            }
+            return z.key;
         }
 
         private void consolidate() {
             int D = computeD();
-            Node<E>[] A = new Node[D + 1];
+            FibNode<E>[] A = new FibNode[D + 1];
 
-            Node w = this.min;
+            FibNode w = this.min;
             if (w == null) {
                 return;
             }
 
-            Node sentry = w;
+            FibNode sentry = w;
             do {
                 // for each node w in root list
-                Node<E> x = w;
+                FibNode<E> x = w;
                 int d = x.degree;
                 while (A[d] != null) {
-                    Node<E> y = A[d];
+                    FibNode<E> y = A[d];
                     if (compare(x.key, y.key) > 0) {
-                        Node tmp = x;
+                        FibNode tmp = x;
                         x = y;
                         y = tmp;
                     }
@@ -413,7 +328,7 @@ class butter {
             return (int) (Math.log(this.n) / LOG_PHI);
         }
 
-        private void concat(Node n1, Node n2) {
+        private void concat(FibNode n1, FibNode n2) {
             // concatenate two lists
             n1.right.left = n2.left;
             n2.left.right = n1.right;
@@ -421,7 +336,7 @@ class butter {
             n2.left = n1;
         }
 
-        private void insertIntoList(Node node, Node list) {
+        private void insertIntoList(FibNode node, FibNode list) {
             if (list == null) {
                 node.right = node.left = node;
             } else {
