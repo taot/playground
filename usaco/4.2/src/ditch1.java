@@ -41,7 +41,7 @@ class ditch1 {
             int s = Integer.parseInt(st.nextToken()) - 1;
             int e = Integer.parseInt(st.nextToken()) - 1;
             int c = Integer.parseInt(st.nextToken());
-            graph[s][e] = c;
+            graph[s][e] += c;
         }
 
         int sum = maximumFlow();
