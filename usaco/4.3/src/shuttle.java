@@ -27,19 +27,20 @@ class shuttle {
         N = Integer.parseInt(st.nextToken());
         GOAL = getGoalState();
 
-//        bfs();
+        bfs();
 
-        for (int limit = 20; limit < 200; limit+= 20) {
-            visited.clear();
-            result = null;
-            resultLength = Integer.MAX_VALUE;
-            State s = getInitState();
-            dfs(s, limit, 0);
-            if (result != null) {
-                printResult(result);
-                break;
-            }
-        }
+//        for (int limit = 20; limit < 200; limit+= 20) {
+//            visited.clear();
+//            result = null;
+//            resultLength = Integer.MAX_VALUE;
+//            State s = getInitState();
+//            dfs(s, limit, 0);
+//            if (result != null) {
+//                printResult(result);
+//                break;
+//            }
+//            System.out.println("visited.size(): " + visited.size());
+//        }
 
         out.close();
 
@@ -212,21 +213,21 @@ class shuttle {
             State s;
             List<State> moves = new ArrayList<>();
 
-            if (x > 1 && puzzle[x-2] != puzzle[x-1]) {
+            if (x > 1 && puzzle[x-2] != puzzle[x-1] && puzzle[x-2] == 'w') {
                 s = new State(puzzle, this, x-2);
                 s.puzzle[x] = s.puzzle[x-2];
                 s.puzzle[x-2] = ' ';
                 moves.add(s);
             }
 
-            if (x > 0) {
+            if (x > 0 && puzzle[x-1] == 'w') {
                 s = new State(puzzle, this, x-1);
                 s.puzzle[x] = s.puzzle[x-1];
                 s.puzzle[x-1] = ' ';
                 moves.add(s);
             }
 
-            if (x < puzzle.length - 1) {
+            if (x < puzzle.length - 1 && puzzle[x+1] == 'b') {
                 s = new State(puzzle, this, x+1);
                 s.puzzle[x] = s.puzzle[x+1];
                 s.puzzle[x+1] = ' ';
@@ -234,7 +235,7 @@ class shuttle {
             }
 
 
-            if (x < puzzle.length - 2 && puzzle[x+2] != puzzle[x+1]) {
+            if (x < puzzle.length - 2 && puzzle[x+2] != puzzle[x+1] && puzzle[x+2] == 'b') {
                 s = new State(puzzle, this, x+2);
                 s.puzzle[x] = s.puzzle[x+2];
                 s.puzzle[x+2] = ' ';
