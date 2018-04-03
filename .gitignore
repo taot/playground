@@ -1,6 +1,7 @@
 *.swp
 .~*#
 *.pyc
+*.class
 build/
 node_modules/
 target/
