@@ -27,6 +27,7 @@ public class MeetingRooms2Test {
         int output = minMeetingRooms(input);
         Assert.assertEquals(3, output);
     }
+
     @Test
     public void test_wrong_1() {
         Interval[] input = { };
