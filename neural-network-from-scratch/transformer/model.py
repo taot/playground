@@ -22,7 +22,7 @@ class PositionalEncoding(nn.Module):
         super().__init__()
         self.d_model = d_model
         self.seq_len = seq_len
-        self.dropout = nn.Dropout(dropout)
+        self.dropout = nn.Dropout(dropout)  # why positional encoding needs a dropout?
 
         pe = torch.zeros(seq_len, d_model)  # (seq_len, d_model)
         position = torch.arange(0, seq_len, dtype=torch.float).unsqueeze(1) # (seq_len, 1)
@@ -207,3 +207,32 @@ class ProjectionLayer(nn.Module):
         x = torch.log_softmax(self.proj(x), dim=-1)
         return x
 
+class Transformer(nn.Module):
+
+    def __init__(self, encoder: Encoder, decoder: Decoder, src_embed: InputEmbeddings, tgt_embed: InputEmbeddings,
+        src_pos: PositionalEncoding, tgt_pos: PositionalEncoding, projection_layer: ProjectionLayer):
+
+        super().__init__()
+
+        self.encoder = encoder
+        self.decoder = decoder
+        self.src_embed = src_embed
+        self.tgt_embed = tgt_embed
+        self.src_pos = src_pos
+        self.tgt_pos = tgt_pos
+        self.projection_layer = projection_layer
+
+    def encode(self, src: Tensor, src_mask: Tensor) -> Tensor:
+        x = self.src_embed(src) # (B, seq_len) -> (B, seq_len, d_model)
+        x = self.src_pos(x)     # (B, seq_len, d_model) -> (B, seq_len, d_model)
+        x = self.encoder(x, src_mask)   # (B, seq_len, d_model) -> (B, seq_len, d_model)
+        return x
+
+    def decode(self, encoder_output: Tensor, src_mask: Tensor, tgt: Tensor, tgt_mask: Tensor) -> Tensor:
+        x = self.tgt_embed(tgt) # (B, seq_len) -> (B, seq_len, d_model)
+        x = self.tgt_pos(x)     # (B, seq_len, d_model) -> (B, seq_len, d_model)
+        x = self.decoder(x, encoder_output, src_mask, tgt_mask)
+        return x    # (B, seq_len, d_model)
+
+    def project(self, x: Tensor) -> Tensor:
+        return self.projection_layer(x) # (B, seq_len, d_model) -> (B, seq_len, vocab_size)
