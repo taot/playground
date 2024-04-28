@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 from model import InputEmbeddings, PositionalEncoding, LayerNormalization, FeedForwardBlock, MultiHeadAttentionBlock, ResidualConnection
-from model import EncoderBlock, Encoder, DecoderBlock, Decoder, ProjectionLayer, Transformer
+from model import EncoderBlock, Encoder, DecoderBlock, Decoder, ProjectionLayer, Transformer, build_transformer
 
 B = 2           # batch size
 D_MODEL = 4     # d_model
@@ -170,3 +170,28 @@ def test_transformer() -> None:
 
     result = transformer.project(decoder_output)
     assert result.size() == (B, SEQ_LEN, tgt_vocab_size)
+
+def test_build_transformer() -> None:
+    src_vocab_size = 100
+    tgt_vocab_size = 150
+    src_seq_len = SEQ_LEN
+    tgt_seq_len = SEQ_LEN + 3
+
+    transformer = build_transformer(src_vocab_size, tgt_vocab_size, src_seq_len, tgt_seq_len, d_model=D_MODEL, h=H)
+    src = torch.randint(low=0, high=src_vocab_size, size=(B, src_seq_len))
+    src_mask = torch.ones(B, H, src_seq_len, src_seq_len)
+
+    encoder_output = transformer.encode(src, src_mask)
+    assert encoder_output.size() == (B, src_seq_len, D_MODEL)
+
+    tgt = torch.randint(low=0, high=tgt_vocab_size, size=(B, tgt_seq_len))
+    tgt_mask = torch.ones(B, H, tgt_seq_len, tgt_seq_len)
+
+    cross_mask = torch.ones(B, H, tgt_seq_len, src_seq_len)
+
+    decoder_output = transformer.decode(encoder_output, cross_mask, tgt, tgt_mask)
+    assert decoder_output.size() == (B, tgt_seq_len, D_MODEL)
+
+    result = transformer.project(decoder_output)
+    assert result.size() == (B, tgt_seq_len, tgt_vocab_size)
+
