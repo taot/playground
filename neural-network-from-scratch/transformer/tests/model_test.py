@@ -9,12 +9,14 @@ D_MODEL = 4     # d_model
 SEQ_LEN = 10    # seq_len
 H = 2           # h
 
+
 def test_input_embeddings() -> None:
     input_embedding = InputEmbeddings(D_MODEL, 20)
     x = torch.LongTensor([[1, 2, 4, 5], [4, 3, 2, 9]])
     y = input_embedding(x)
 
     assert y.size() == (2, 4, D_MODEL)
+
 
 def test_positional_encoding() -> None:
     pos_encoding = PositionalEncoding(D_MODEL, SEQ_LEN, dropout=0.2)
@@ -25,6 +27,7 @@ def test_positional_encoding() -> None:
     y = pos_encoding(x)
     assert y.size() == (B, SEQ_LEN, D_MODEL)
 
+
 def test_layer_normalization() -> None:
     layer_norm = LayerNormalization()
     x = torch.rand(B, SEQ_LEN, D_MODEL)
@@ -32,12 +35,14 @@ def test_layer_normalization() -> None:
 
     assert y.size() == (B, SEQ_LEN, D_MODEL)
 
+
 def test_feedforward_block() -> None:
     ff = FeedForwardBlock(D_MODEL, SEQ_LEN, dropout=0.2)
     x = torch.rand(B, SEQ_LEN, D_MODEL)
     y = ff(x)
 
     assert y.size() == (B, SEQ_LEN, D_MODEL)
+
 
 def test_multi_head_attention_block() -> None:
     mha = MultiHeadAttentionBlock(D_MODEL, H, dropout=0.2)
@@ -47,6 +52,7 @@ def test_multi_head_attention_block() -> None:
 
     assert y.size() == (B, SEQ_LEN, D_MODEL)
     assert mha.attention_scores.size() == (B, H, SEQ_LEN, SEQ_LEN)
+
 
 def test_residual_connection() -> None:
     residual_connection = ResidualConnection(dropout=0.2)
@@ -59,6 +65,7 @@ def test_residual_connection() -> None:
 
     assert y.size() == (B, SEQ_LEN, D_MODEL)
 
+
 def test_encoder_block() -> None:
     mha = MultiHeadAttentionBlock(D_MODEL, H, dropout=0.2)
     ff = FeedForwardBlock(D_MODEL, SEQ_LEN, dropout=0.2)
@@ -70,6 +77,7 @@ def test_encoder_block() -> None:
     y = encoder_block(x, src_mask)
 
     assert y.size() == (B, SEQ_LEN, D_MODEL)
+
 
 def create_encoder() -> Encoder:
     layers = []
@@ -84,6 +92,7 @@ def create_encoder() -> Encoder:
 
     return encoder
 
+
 def test_encoder() -> None:
     encoder = create_encoder()
 
@@ -93,6 +102,7 @@ def test_encoder() -> None:
     y = encoder(x, src_mask)
 
     assert y.size() == (B, SEQ_LEN, D_MODEL)
+
 
 def test_decoder_block() -> None:
     self_attention_block = MultiHeadAttentionBlock(D_MODEL, H, dropout=0.2)
@@ -109,6 +119,7 @@ def test_decoder_block() -> None:
 
     assert y.size() == (B, SEQ_LEN, D_MODEL)
 
+
 def create_decoder() -> Decoder:
     layers = []
     for _ in range(6):
@@ -123,6 +134,7 @@ def create_decoder() -> Decoder:
 
     return decoder
 
+
 def test_decoder() -> None:
     decoder = create_decoder()
 
@@ -135,12 +147,14 @@ def test_decoder() -> None:
 
     assert y.size() == (B, SEQ_LEN, D_MODEL)
 
+
 def test_projection_layer() -> None:
     projection_layer = ProjectionLayer(D_MODEL, 100)
     x = torch.rand(B, SEQ_LEN, D_MODEL)
     y = projection_layer(x)
 
     assert y.size() == (B, SEQ_LEN, 100)
+
 
 def test_transformer() -> None:
     src_vocab_size = 100
@@ -171,6 +185,7 @@ def test_transformer() -> None:
     result = transformer.project(decoder_output)
     assert result.size() == (B, SEQ_LEN, tgt_vocab_size)
 
+
 def test_build_transformer() -> None:
     src_vocab_size = 100
     tgt_vocab_size = 150
@@ -194,4 +209,3 @@ def test_build_transformer() -> None:
 
     result = transformer.project(decoder_output)
     assert result.size() == (B, tgt_seq_len, tgt_vocab_size)
-

@@ -3,6 +3,7 @@ from torch import nn, Tensor
 import math
 from typing import Optional, Callable
 
+
 class InputEmbeddings(nn.Module):
 
     def __init__(self, d_model: int, vocab_size: int) -> None:
@@ -15,6 +16,7 @@ class InputEmbeddings(nn.Module):
         # x: (B, seq_len), dtype=long
         x = self.embedding(x) * math.sqrt(self.d_model) # (B, seq_len, d_model)
         return x
+
 
 class PositionalEncoding(nn.Module):
 
@@ -41,7 +43,8 @@ class PositionalEncoding(nn.Module):
         # x: (B, seq_len, d_model)
         x = x + self.pe[:, :x.size(1), :].requires_grad_(False)
         return self.dropout(x)
-    
+
+
 class LayerNormalization(nn.Module):
 
     def __init__(self, eps: float = 10**-6) -> None:
@@ -57,6 +60,7 @@ class LayerNormalization(nn.Module):
         y = ((x - mean) / (std + self.eps)) * self.alpha + self.bias
         return y
 
+
 class FeedForwardBlock(nn.Module):
 
     def __init__(self, d_model: int, d_ff: int, *, dropout: float):
@@ -71,6 +75,7 @@ class FeedForwardBlock(nn.Module):
         # (B, seq_len, d_model) -> (B, seq_len, d_ff) -> (B, seq_len, d_model)
         x = self.linear2(self.dropout(torch.relu(self.linear1(x))))
         return x
+
 
 class MultiHeadAttentionBlock(nn.Module):
 
@@ -105,7 +110,6 @@ class MultiHeadAttentionBlock(nn.Module):
 
         return attention_scores @ value, attention_scores   # (B, h, seq_len, d_k), (B, h, seq_len, seq_len)
 
-
     def forward(self, q: Tensor, k: Tensor, v: Tensor, mask: Tensor) -> Tensor:
         # (B, seq_len, d_model) -> (B, seq_len, d_model)
         query = self.w_q(q)
@@ -127,6 +131,7 @@ class MultiHeadAttentionBlock(nn.Module):
         # (B, seq_len, d_model) -> (B, seq_len, d_model)
         return self.w_o(x)
 
+
 class ResidualConnection(nn.Module):
 
     def __init__(self, *, dropout: float):
@@ -142,6 +147,7 @@ class ResidualConnection(nn.Module):
 
         return x
 
+
 class EncoderBlock(nn.Module):
 
     def __init__(self, self_attention_block: MultiHeadAttentionBlock, feedforward_block: FeedForwardBlock, *, dropout: float):
@@ -155,6 +161,7 @@ class EncoderBlock(nn.Module):
         x = self.residual_connections[1](x, self.feedforward_block)
         return x
 
+
 class Encoder(nn.Module):
 
     def __init__(self, layers: nn.ModuleList):
@@ -166,6 +173,7 @@ class Encoder(nn.Module):
         for layer in self.layers:
             x = layer(x, src_mask)
         return self.norm(x)
+
 
 class DecoderBlock(nn.Module):
 
@@ -185,6 +193,7 @@ class DecoderBlock(nn.Module):
         self.residual_connections[2](x, self.feedforward_block)
         return x
 
+
 class Decoder(nn.Module):
 
     def __init__(self, layers: nn.ModuleList):
@@ -197,6 +206,7 @@ class Decoder(nn.Module):
             x = layer(x, encoder_output, cross_mask, tgt_mask)
         return self.norm(x)
 
+
 class ProjectionLayer(nn.Module):
 
     def __init__(self, d_model: int, vocab_size: int) -> None:
@@ -207,6 +217,7 @@ class ProjectionLayer(nn.Module):
         # (B, seq_len, d_model) -> (B, seq_len, vocab_size)
         x = torch.log_softmax(self.proj(x), dim=-1)
         return x
+
 
 class Transformer(nn.Module):
 
@@ -237,6 +248,7 @@ class Transformer(nn.Module):
 
     def project(self, x: Tensor) -> Tensor:
         return self.projection_layer(x)     # (B, seq_len, d_model) -> (B, seq_len, vocab_size)
+
 
 def build_transformer(src_vocab_size: int, tgt_vocab_size: int, src_seq_len: int, tgt_seq_len: int,
         d_model: int = 512, N: int = 6, h: int = 8,  dropout: float = 0.1, d_ff: int = 2048) -> Transformer:
