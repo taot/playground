@@ -1,0 +1,10 @@
+from pathlib import Path
+from jieba_tokenizer import JiebaTokenizer
+# p = Path("/home/taot/programming/rust/jieba_tokenizer/simple.json")
+p = Path("/home/taot/github/playground/neural-network-from-scratch/transformer/tokenizers/tokenizer_zh.json")
+tokenizer = JiebaTokenizer.from_file(p)
+tokenizer.pre_tokenize("我们中出了一个叛徒，土豆面包1984")
+encoding = tokenizer.encode("我们中出了一个叛徒，土豆面包1984", True)
+
+
+p2 = Path("/home/taot/programming/rust/jieba_tokenizer/tokenizer_zh_new.json")

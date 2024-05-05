@@ -1,0 +1,7 @@
+[package]
+name = "test_jieba_tokenizer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+jieba_tokenizer = { path = "../jieba_tokenizer" }

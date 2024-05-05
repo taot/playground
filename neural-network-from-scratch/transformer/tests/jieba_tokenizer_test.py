@@ -1,7 +1,7 @@
 import datasets
 
 import train
-from jieba_tokenizer_py import JiebaTokenizer
+from jieba_tokenizer_plain_py import JiebaTokenizer
 
 SEQUENCE1 = "然而，和1989年一样，2008-2009年很可能也能被视为一个划时代的改变，其带来的发人深省的后果将在几十年后仍能让我们感受得到。"
 

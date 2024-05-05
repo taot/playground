@@ -1,0 +1,13 @@
+[package]
+name = "jieba_tokenizer_py"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "jieba_tokenizer_py"
+crate-type = ["cdylib"]
+
+[dependencies]
+jieba_tokenizer = { path = "../jieba_tokenizer" }
+pyo3 = "0.21.2"

@@ -1,4 +1,4 @@
-from jieba_tokenizer_py import JiebaEncoding
+from jieba_tokenizer_plain_py import JiebaEncoding
 from tokenizers import Encoding
 
 
