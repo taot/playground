@@ -139,7 +139,7 @@ class ResidualConnection(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.norm = LayerNormalization()
 
-    def forward(self, x: Tensor, sublayer: Callable[Tensor, Tensor]) -> Tensor:
+    def forward(self, x: Tensor, sublayer: Callable[[Tensor], Tensor]) -> Tensor:
         x = x + self.dropout(sublayer(self.norm(x)))
 
         # it's different in the paper
@@ -178,7 +178,7 @@ class Encoder(nn.Module):
 class DecoderBlock(nn.Module):
 
     def __init__(self, self_attention_block: MultiHeadAttentionBlock, cross_attention_block: MultiHeadAttentionBlock,
-        feedforward_block: FeedForwardBlock, *, dropout: float):
+                 feedforward_block: FeedForwardBlock, *, dropout: float):
 
         super().__init__()
 
@@ -189,7 +189,7 @@ class DecoderBlock(nn.Module):
         
     def forward(self, x: Tensor, encoder_output: Tensor, cross_mask: Tensor, tgt_mask: Tensor) -> Tensor:
         self.residual_connections[0](x, lambda x: self.self_attention_block(x, x, x, tgt_mask))
-        self.residual_connections[1](x, lambda x: self.cross_attention_block(x, encoder_output, encoder_output, cross_mask)) # TODO
+        self.residual_connections[1](x, lambda x: self.cross_attention_block(x, encoder_output, encoder_output, cross_mask))    # TODO
         self.residual_connections[2](x, self.feedforward_block)
         return x
 
@@ -222,7 +222,7 @@ class ProjectionLayer(nn.Module):
 class Transformer(nn.Module):
 
     def __init__(self, encoder: Encoder, decoder: Decoder, src_embed: InputEmbeddings, tgt_embed: InputEmbeddings,
-        src_pos: PositionalEncoding, tgt_pos: PositionalEncoding, projection_layer: ProjectionLayer):
+                 src_pos: PositionalEncoding, tgt_pos: PositionalEncoding, projection_layer: ProjectionLayer):
 
         super().__init__()
 
@@ -241,8 +241,8 @@ class Transformer(nn.Module):
         return x
 
     def decode(self, encoder_output: Tensor, cross_mask: Tensor, tgt: Tensor, tgt_mask: Tensor) -> Tensor:
-        x = self.tgt_embed(tgt) # (B, seq_len) -> (B, seq_len, d_model)
-        x = self.tgt_pos(x)     # (B, seq_len, d_model) -> (B, seq_len, d_model)
+        x = self.tgt_embed(tgt)     # (B, seq_len) -> (B, seq_len, d_model)
+        x = self.tgt_pos(x)         # (B, seq_len, d_model) -> (B, seq_len, d_model)
         x = self.decoder(x, encoder_output, cross_mask, tgt_mask)
         return x    # (B, seq_len, d_model)
 
@@ -251,7 +251,7 @@ class Transformer(nn.Module):
 
 
 def build_transformer(src_vocab_size: int, tgt_vocab_size: int, src_seq_len: int, tgt_seq_len: int,
-        d_model: int = 512, N: int = 6, h: int = 8,  dropout: float = 0.1, d_ff: int = 2048) -> Transformer:
+                      d_model: int = 512, N: int = 6, h: int = 8,  dropout: float = 0.1, d_ff: int = 2048) -> Transformer:
 
     # Embedding layers
     src_embed = InputEmbeddings(d_model, src_vocab_size)

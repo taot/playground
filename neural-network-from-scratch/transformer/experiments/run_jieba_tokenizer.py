@@ -4,13 +4,15 @@ import datasets
 
 import train
 import utils
-from config import config
 
 from jieba_tokenizer_py import JiebaTokenizer
 
-dataset_dict = datasets.load_dataset("wmt/wmt19", "zh-en")
+from config import get_config
+
+dataset_dict = datasets.load_dataset("wmt/wmt19", "zh-en", split="train")
 print(dataset_dict)
 
+config = get_config()
 tokenizer_path = Path(config["tokenizer_file"].format("zh"))
 
 # count = 0
@@ -18,11 +20,13 @@ tokenizer_path = Path(config["tokenizer_file"].format("zh"))
 #     count += 1
 # print(f"count = {count}")
 
-tokenizer = JiebaTokenizer()
-tokenizer.train_from_iterator(train.get_all_sentences(dataset_dict, "train", "zh", limit=None, verbose=False), min_frequency=2)
-tokenizer.save(tokenizer_path)
+# tokenizer = JiebaTokenizer()
+# tokenizer.train_from_iterator(train.get_all_sentences(dataset_dict, "train", "zh", limit=None, verbose=False), min_frequency=2)
+# tokenizer.save(tokenizer_path)
 
-# tokenizer = JiebaTokenizer.from_file(tokenizer_path)
+tokenizer = JiebaTokenizer.from_file(tokenizer_path)
+
+print(f"vocab size: {tokenizer.get_vocab_size()}")
 
 strs = [
     "当然，雷曼兄弟公司的倒闭和柏林墙的倒塌没有任何关系。",

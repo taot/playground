@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-use jieba_tokenizer::JiebaEncoding as JiebaEncodingRs;
-use jieba_tokenizer::JiebaTokenizer as JiebaTokenizerRs;
+use jieba_tokenizer::JiebaEncoding as RustJiebaEncoding;
+use jieba_tokenizer::JiebaTokenizer as RustJiebaTokenizer;
 use pyo3::prelude::*;
 use pyo3::types::PyIterator;
 
@@ -27,8 +27,8 @@ struct JiebaEncoding {
     special_tokens_mask: Vec<i8>,
 }
 
-impl From<JiebaEncodingRs> for JiebaEncoding {
-    fn from(encoding: JiebaEncodingRs) -> Self {
+impl From<RustJiebaEncoding> for JiebaEncoding {
+    fn from(encoding: RustJiebaEncoding) -> Self {
         Self {
             ids: encoding.ids,
             tokens: encoding.tokens,
@@ -37,9 +37,9 @@ impl From<JiebaEncodingRs> for JiebaEncoding {
     }
 }
 
-impl Into<JiebaEncodingRs> for JiebaEncoding {
-    fn into(self) -> JiebaEncodingRs {
-        JiebaEncodingRs {
+impl Into<RustJiebaEncoding> for JiebaEncoding {
+    fn into(self) -> RustJiebaEncoding {
+        RustJiebaEncoding {
             ids: self.ids,
             tokens: self.tokens,
             special_tokens_mask: self.special_tokens_mask
@@ -49,7 +49,7 @@ impl Into<JiebaEncodingRs> for JiebaEncoding {
 
 #[pyclass]
 struct JiebaTokenizer {
-    inner: JiebaTokenizerRs
+    inner: RustJiebaTokenizer
 }
 
 #[pymethods]
@@ -57,7 +57,7 @@ impl JiebaTokenizer {
 
     #[new]
     fn new() -> Self {
-        let inner = JiebaTokenizerRs::new();
+        let inner = RustJiebaTokenizer::new();
         JiebaTokenizer { inner }
     }
 
@@ -65,7 +65,7 @@ impl JiebaTokenizer {
     fn from_file(file_path: PathBuf) -> Self {
         println!("Creating from file {:?}", file_path);
 
-        let inner = JiebaTokenizerRs::from_file(file_path);
+        let inner = RustJiebaTokenizer::from_file(file_path);
         Self::from_tokenizer_rs(inner)
     }
 
@@ -91,6 +91,10 @@ impl JiebaTokenizer {
 
     fn get_vocab(&self) -> HashMap<String, i64> {
         self.inner.get_vocab()
+    }
+
+    fn get_vocab_size(&self) -> usize {
+        self.inner.get_vocab_size()
     }
 
     fn id_to_token(&self, id: i64) -> Option<String> {
@@ -119,7 +123,7 @@ impl JiebaTokenizer {
 
 impl JiebaTokenizer {
 
-    fn from_tokenizer_rs(tokenizer_rs: JiebaTokenizerRs) -> Self {
+    fn from_tokenizer_rs(tokenizer_rs: RustJiebaTokenizer) -> Self {
         JiebaTokenizer { inner: tokenizer_rs }
     }
 

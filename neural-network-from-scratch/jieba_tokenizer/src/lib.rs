@@ -16,6 +16,7 @@ pub struct JiebaEncoding {
 
 pub struct JiebaTokenizer {
     data: Vec<(String, i64, i64)>,    // list of tuple (token, id, frequency)
+    vocab_size: usize,
     token_to_id_map: HashMap<String, i64>,
     id_to_token_map: HashMap<i64, String>,
     jieba: Jieba,
@@ -34,6 +35,7 @@ impl JiebaTokenizer {
     pub fn new() -> Self {
         JiebaTokenizer {
             data: vec![],
+            vocab_size: 0,
             token_to_id_map: HashMap::new(),
             id_to_token_map: HashMap::new(),
             jieba: Jieba::new(),
@@ -123,6 +125,10 @@ impl JiebaTokenizer {
         self.token_to_id_map.clone()
     }
 
+    pub fn get_vocab_size(&self) -> usize {
+        self.vocab_size
+    }
+
     pub fn id_to_token(&self, id: i64) -> Option<String> {
         self.id_to_token_map.get(&id).map(|s| s.to_string())
     }
@@ -198,8 +204,12 @@ impl JiebaTokenizer {
      * Private methods
      */
     fn reconstruct_from_data(&mut self) -> () {
+        self.vocab_size = self.data.len();
         self.token_to_id_map = self.data.iter().map(|(token, id, _)| (token.to_string(), *id)).collect::<HashMap<_, _>>();
         self.id_to_token_map = self.data.iter().map(|(token, id, _)| (*id, token.to_string())).collect::<HashMap<_, _>>();
         self.special_token_ids = SPECIAL_TOKENS.iter().map(|t| self.token_to_id(t).unwrap()).collect();
+
+        assert_eq!(self.token_to_id_map.len(), self.vocab_size);
+        assert_eq!(self.id_to_token_map.len(), self.vocab_size);
     }
 }
