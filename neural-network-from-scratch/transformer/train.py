@@ -122,7 +122,7 @@ def get_ds(config: Dict[str, Any]) -> (DataLoader, DataLoader, Tokenizer, Tokeni
 
 def get_model(config: Dict[str, Any], src_vocab_size: int, tgt_vocab_size: int) -> Transformer:
     seq_len = config["seq_len"]
-    model = build_transformer(src_vocab_size, tgt_vocab_size, seq_len, seq_len, config["d_model"])
+    model = build_transformer(src_vocab_size, tgt_vocab_size, seq_len, seq_len, config["d_model"], N=config["n_layers"])
     return model
 
 
@@ -168,7 +168,7 @@ def train_model(config: Dict[str, Any]):
             label = batch["label"].to(device)   # (B, seq_len)
 
             # (B, seq_len, tgt_vocab_size) -> (B * seq_len, tgt_vocab_size)
-            loss = loss_fn(proj_output.view(-1, tokenizer_src.get_vocab_size()), label.view(-1))
+            loss = loss_fn(proj_output.view(-1, tokenizer_tgt.get_vocab_size()), label.view(-1))
             batch_iterator.set_postfix({"loss": f"{loss.item():6.3f}"})
 
             # Log loss

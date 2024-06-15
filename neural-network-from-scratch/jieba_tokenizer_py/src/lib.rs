@@ -63,8 +63,6 @@ impl JiebaTokenizer {
 
     #[staticmethod]
     fn from_file(file_path: PathBuf) -> Self {
-        println!("Creating from file {:?}", file_path);
-
         let inner = RustJiebaTokenizer::from_file(file_path);
         Self::from_tokenizer_rs(inner)
     }

@@ -12,11 +12,12 @@ def get_config() -> Dict[str, Any]:
         "tokenizer_file": str(PROJECT_DATA_ROOT) + "/tokenizers/tokenizer_{0}.json",
         "lang_src": "en",
         "lang_tgt": "zh",
-        "seq_len": 2200,
-        "dataset": "wmt/wmt19",
-        "dataset_config_name": "zh-en",
+        "seq_len": 52,
+        "dataset": "librakevin/wmt19-short",
+        "dataset_config_name": "zh-en-50",
         "batch_size": 8,
         "d_model": 512,
+        "n_layers": 6,
         "num_epochs": 20,
         "lr": 10**-4,
         "preload": None,
@@ -25,6 +26,9 @@ def get_config() -> Dict[str, Any]:
         "tensorboard_log_dir": str(PROJECT_DATA_ROOT) + "/runs/tmodel"
     }
 
+# batch_size: 8
+# d_model: 512
+# num_epochs: 20
 
 def get_model_folder_path(config: Dict[str, Any]) -> Path:
     return PROJECT_DATA_ROOT / config["model_folder"]
