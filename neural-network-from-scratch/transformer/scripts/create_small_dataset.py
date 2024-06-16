@@ -9,13 +9,16 @@ from tqdm import tqdm
 import train
 from config import get_config
 
-LIMIT = 50
+SEQ_LEN_LIMIT = 50
+
+NUM_ROWS_LIMIT = 100000
 
 SOURCE_DIR = "/home/taot/data/ml_data/my_projects/experiments/wmt19-zh-en/"
-TARGET_DIR = "/home/taot/data/huggingface/wmt19-short/zh-en-50/"
+TARGET_DIR = "/home/taot/data/huggingface/wmt19-short/zh-en-50-small/"
 
 config = get_config()
 
+total_count = 0
 
 tokenizers = {
     "en": train.get_tokenizer(config, "en"),
@@ -27,7 +30,7 @@ def is_too_long(translation: Dict[str, Any]) -> bool:
     for lang in ["en", "zh"]:
         text = translation[lang]
         ids = tokenizers[lang].encode(text, add_special_tokens=False).ids
-        if len(ids) > LIMIT:
+        if len(ids) > SEQ_LEN_LIMIT:
             return True
 
     return False
@@ -38,7 +41,6 @@ def process_file(src_file: str, tgt_file: str) -> None:
     df = table.to_pandas()
 
     data = []
-    count = 0
 
     with tqdm(total=len(df)) as progress:
         for index, row in df.iterrows():
@@ -48,7 +50,11 @@ def process_file(src_file: str, tgt_file: str) -> None:
                 continue
 
             data.append(translation)
-            count += 1
+            global total_count
+            total_count += 1
+
+            if total_count > NUM_ROWS_LIMIT:
+                break
 
     tgt_df = pd.DataFrame({"translation": data})
     tgt_table = pa.Table.from_pandas(tgt_df, preserve_index=False)
@@ -64,6 +70,9 @@ def main():
         tgt_file = TARGET_DIR + file
         print(f"Processing {src_file}")
         process_file(src_file, tgt_file)
+
+        if total_count > NUM_ROWS_LIMIT:
+            break
 
 
 if __name__ == "__main__":

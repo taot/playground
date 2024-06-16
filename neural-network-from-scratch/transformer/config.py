@@ -16,7 +16,7 @@ def get_config() -> Dict[str, Any]:
         "lang_tgt": "zh",
         "seq_len": 52,
         "dataset": "librakevin/wmt19-short",
-        "dataset_config_name": "zh-en-50",
+        "dataset_config_name": "zh-en-50-small",
         "batch_size": 16,
         "d_model": 512,
         "n_layers": 6,

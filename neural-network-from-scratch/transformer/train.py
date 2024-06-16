@@ -242,7 +242,8 @@ def train_model(config: Dict[str, Any]):
             optimizer.step()
             optimizer.zero_grad()
 
-            if global_step % config["validation_every_n_steps"] == 0:
+            validation_every_n_steps = config["validation_every_n_steps"]
+            if validation_every_n_steps > 0 and global_step % config["validation_every_n_steps"] == 0:
                 run_validation(model, val_dataloader, tokenizer_src, tokenizer_tgt, config["seq_len"], device,
                                lambda msg: batch_iterator.write(msg), num_examples=config["validation_num_examples"])
 
