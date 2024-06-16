@@ -4,12 +4,14 @@ from typing import Dict, Any
 
 PROJECT_ROOT = Path(__file__).parent.resolve()
 
-PROJECT_DATA_ROOT = Path("/home/taot/data/ml_data/my_projects/transformer_from_scratch")
+TRACKED_DATA_ROOT = Path("/home/taot/data/huggingface/my-neural-network-data/transformer-from-scratch")
+
+UNTRACKED_DATA_ROOT = Path("/home/taot/data/ml_data/my_projects/transformer-from-scratch")
 
 
 def get_config() -> Dict[str, Any]:
     return {
-        "tokenizer_file": str(PROJECT_DATA_ROOT) + "/tokenizers/tokenizer_{0}.json",
+        "tokenizer_file": str(TRACKED_DATA_ROOT) + "/tokenizers/tokenizer_{0}.json",
         "lang_src": "en",
         "lang_tgt": "zh",
         "seq_len": 52,
@@ -23,7 +25,7 @@ def get_config() -> Dict[str, Any]:
         "preload": None,
         "model_folder": "weights",
         "model_basename": "tmodel_",
-        "tensorboard_log_dir": str(PROJECT_DATA_ROOT) + "/runs/tmodel"
+        "tensorboard_log_dir": str(UNTRACKED_DATA_ROOT) + "/runs/tmodel"
     }
 
 # batch_size: 8
@@ -31,7 +33,7 @@ def get_config() -> Dict[str, Any]:
 # num_epochs: 20
 
 def get_model_folder_path(config: Dict[str, Any]) -> Path:
-    return PROJECT_DATA_ROOT / config["model_folder"]
+    return UNTRACKED_DATA_ROOT / config["model_folder"]
 
 
 def get_weights_file_path(config: Dict[str, Any], epoch: int) -> Path:

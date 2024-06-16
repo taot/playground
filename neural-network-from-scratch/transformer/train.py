@@ -110,6 +110,8 @@ def get_ds(config: Dict[str, Any]) -> (DataLoader, DataLoader, Tokenizer, Tokeni
     # Build tokenizers
     tokenizer_src = get_tokenizer(config, config["lang_src"])
     tokenizer_tgt = get_tokenizer(config, config["lang_tgt"])
+    assert tokenizer_src is not None
+    assert tokenizer_tgt is not None
 
     train_ds = BilingualDataset(train_ds_raw, tokenizer_src, tokenizer_tgt, config["lang_src"], config["lang_tgt"], config["seq_len"])
     val_ds = BilingualDataset(val_ds_raw, tokenizer_src, tokenizer_tgt, config["lang_src"], config["lang_tgt"], config["seq_len"])
