@@ -1,5 +1,6 @@
 import warnings
 from typing import Dict, Any, Optional
+import sys
 
 import torch
 from datasets import load_dataset
@@ -19,7 +20,7 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from config import get_model_folder_path, get_weights_file_path, get_config
+from config import get_model_folder_path, get_weights_file_path, get_config, ENV_LOCAL, ENV_LAMBDA
 from constants import PAD, SOS, EOS
 from model import build_transformer, Transformer
 from mydataset import BilingualDataset, causal_mask
@@ -213,7 +214,12 @@ def train_model(config: Dict[str, Any]):
         model.train()
         batch_iterator = tqdm(train_dataloader, desc=f"Processing epoch {epoch:02d}")
 
+        count = 0
         for batch in batch_iterator:
+            count += 1
+            # if count > 2:
+            #     break
+
             model.train()
 
             encoder_input = batch["encoder_input"].to(device)   # (B, seq_len)
@@ -258,12 +264,19 @@ def train_model(config: Dict[str, Any]):
             "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
             "global_step": global_step
-        })
+        }, model_file_path)
 
 
 def main():
     # warnings.filterwarnings("ignore")
-    config = get_config()
+
+    env = ENV_LOCAL
+    if len(sys.argv) >= 2:
+        env = sys.argv[1]
+        if env not in [ENV_LOCAL, ENV_LAMBDA]:
+            raise Exception(f"Invalid env. Valid values are {ENV_LOCAL} and {ENV_LAMBDA}")
+
+    config = get_config(env)
     train_model(config)
 
 

@@ -2,16 +2,40 @@ import os
 from pathlib import Path
 from typing import Dict, Any
 
+ENV_LOCAL = "local"
+ENV_LAMBDA = "lambda"
+
+TRACKED = "tracked"
+UNTRACKED = "untracked"
+
 PROJECT_ROOT = Path(__file__).parent.resolve()
 
-TRACKED_DATA_ROOT = Path("/home/taot/data/huggingface/my-neural-network-data/transformer-from-scratch")
+DATA_ROOTS = {
+    ENV_LOCAL: {
+        TRACKED: Path("/home/taot/data/huggingface/my-neural-network-data/transformer-from-scratch"),
+        UNTRACKED: Path("/home/taot/data/ml_data/my_projects/transformer-from-scratch")
+    },
+    ENV_LAMBDA: {
+        TRACKED: Path("/home/ubuntu/my-neural-network-data/transformer-from-scratch"),
+        UNTRACKED: Path("/home/ubuntu/data")
+    }
+}
 
-UNTRACKED_DATA_ROOT = Path("/home/taot/data/ml_data/my_projects/transformer-from-scratch")
 
+def get_config(env: str = ENV_LOCAL) -> Dict[str, Any]:
+    tracked_data_root = DATA_ROOTS[env][TRACKED]
+    untracked_data_root = DATA_ROOTS[env][UNTRACKED]
 
-def get_config() -> Dict[str, Any]:
+    print(tracked_data_root)
+
+    if not tracked_data_root.exists() or not tracked_data_root.is_dir():
+        raise Exception(f"{tracked_data_root} does not exist or is not a directory")
+
+    untracked_data_root.mkdir(parents=True, exist_ok=True)
+
     return {
-        "tokenizer_file": str(TRACKED_DATA_ROOT) + "/tokenizers/tokenizer_{0}.json",
+        "env": env,
+        "tokenizer_file": str(tracked_data_root) + "/tokenizers/tokenizer_{0}.json",
         "lang_src": "en",
         "lang_tgt": "zh",
         "seq_len": 52,
@@ -20,14 +44,14 @@ def get_config() -> Dict[str, Any]:
         "batch_size": 16,
         "d_model": 512,
         "n_layers": 6,
-        "num_epochs": 20,
+        "num_epochs": 3,
         "validation_every_n_steps": 1000,
         "validation_num_examples": 2,
-        "lr": 10**-4,
+        "lr": 10 ** -4,
         "preload": None,
         "model_folder": "weights",
         "model_basename": "tmodel_",
-        "tensorboard_log_dir": str(UNTRACKED_DATA_ROOT) + "/runs/tmodel"
+        "tensorboard_log_dir": str(untracked_data_root) + "/runs/tmodel"
     }
 
 # batch_size: 8
@@ -36,7 +60,9 @@ def get_config() -> Dict[str, Any]:
 
 
 def get_model_folder_path(config: Dict[str, Any]) -> Path:
-    return UNTRACKED_DATA_ROOT / config["model_folder"]
+    env = config["env"]
+    untracked_data_root = DATA_ROOTS[env][UNTRACKED]
+    return untracked_data_root / config["model_folder"]
 
 
 def get_weights_file_path(config: Dict[str, Any], epoch: int) -> Path:
