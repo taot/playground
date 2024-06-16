@@ -7,3 +7,7 @@ maturin develop
 
 maturin develop --release
 ```
+
+```shell
+maturin build --release
+```

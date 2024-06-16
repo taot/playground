@@ -17,10 +17,12 @@ def get_config() -> Dict[str, Any]:
         "seq_len": 52,
         "dataset": "librakevin/wmt19-short",
         "dataset_config_name": "zh-en-50",
-        "batch_size": 8,
+        "batch_size": 16,
         "d_model": 512,
         "n_layers": 6,
         "num_epochs": 20,
+        "validation_every_n_steps": 1000,
+        "validation_num_examples": 2,
         "lr": 10**-4,
         "preload": None,
         "model_folder": "weights",
@@ -31,6 +33,7 @@ def get_config() -> Dict[str, Any]:
 # batch_size: 8
 # d_model: 512
 # num_epochs: 20
+
 
 def get_model_folder_path(config: Dict[str, Any]) -> Path:
     return UNTRACKED_DATA_ROOT / config["model_folder"]
