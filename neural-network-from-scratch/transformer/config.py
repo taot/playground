@@ -26,8 +26,6 @@ def get_config(env: str = ENV_LOCAL) -> Dict[str, Any]:
     tracked_data_root = DATA_ROOTS[env][TRACKED]
     untracked_data_root = DATA_ROOTS[env][UNTRACKED]
 
-    print(tracked_data_root)
-
     if not tracked_data_root.exists() or not tracked_data_root.is_dir():
         raise Exception(f"{tracked_data_root} does not exist or is not a directory")
 
