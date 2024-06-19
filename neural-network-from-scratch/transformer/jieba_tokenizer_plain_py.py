@@ -3,9 +3,7 @@ import unicodedata
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Self, List, Iterable, Dict, Optional, Iterator
-
-import jieba
+from typing import Any, List, Iterable, Dict, Optional, Iterator
 
 UNK = "[UNK]"
 PAD = "[PAD]"

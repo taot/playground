@@ -141,7 +141,7 @@ def greedy_decode(model: Transformer, source: Tensor, src_mask: Tensor, tokenize
         if next_word == eos_id:
             break
 
-    return decoder_input
+    return decoder_input.squeeze(0)
 
 
 def run_validation(model: Transformer, val_ds: BilingualDataset, tokenizer_src: Tokenizer, tokenizer_tgt: Tokenizer,
@@ -160,8 +160,8 @@ def run_validation(model: Transformer, val_ds: BilingualDataset, tokenizer_src: 
 
             model_out = greedy_decode(model, encoder_input, encoder_mask, tokenizer_src, max_len, device)
             model_out_np = model_out.detach().cpu().numpy()
-            ids = model_out_np[0]
-            model_out_text = tokenizer_tgt.decode(ids, skip_special_tokens=False)
+            # ids = model_out_np[0]
+            model_out_text = tokenizer_tgt.decode(model_out_np, skip_special_tokens=False)
 
             source_text = batch["src_text"][0]
             target_text = batch["tgt_text"][0]
@@ -184,7 +184,7 @@ def load_model_state(model: Transformer, optimizer: Optimizer, model_weightw_pat
     optimizer.load_state_dict(state["optimizer_state_dict"])
     global_step = state["global_step"]
 
-    return global_step
+    return initial_epoch, global_step
 
 
 def train_model(config: Dict[str, Any]):
@@ -205,11 +205,14 @@ def train_model(config: Dict[str, Any]):
     global_step = 0
     if config["preload"]:
         model_weights_path = get_weights_file_path(config, config["preload"])
-        global_step = load_model_state(model, optimizer, model_weights_path)
+        initial_epoch, global_step = load_model_state(model, optimizer, model_weights_path)
 
     loss_fn = nn.CrossEntropyLoss(ignore_index=tokenizer_src.token_to_id(PAD), label_smoothing=0.1).to(device)
 
     for epoch in range(initial_epoch, config["num_epochs"]):
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
         model.train()
         batch_iterator = tqdm(train_dataloader, desc=f"Processing epoch {epoch:02d}")
 
@@ -245,7 +248,7 @@ def train_model(config: Dict[str, Any]):
 
             # Update the weights
             optimizer.step()
-            optimizer.zero_grad()
+            optimizer.zero_grad(set_to_none=True)       # Try `set_to_none=False`
 
             validation_every_n_steps = config["validation_every_n_steps"]
             if validation_every_n_steps > 0 and global_step % config["validation_every_n_steps"] == 0:

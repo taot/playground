@@ -29,7 +29,7 @@ def test_positional_encoding() -> None:
 
 
 def test_layer_normalization() -> None:
-    layer_norm = LayerNormalization()
+    layer_norm = LayerNormalization(D_MODEL)
     x = torch.rand(B, SEQ_LEN, D_MODEL)
     y = layer_norm(x)
 
@@ -55,7 +55,7 @@ def test_multi_head_attention_block() -> None:
 
 
 def test_residual_connection() -> None:
-    residual_connection = ResidualConnection(dropout=0.2)
+    residual_connection = ResidualConnection(D_MODEL, dropout=0.2)
     mha = MultiHeadAttentionBlock(D_MODEL, H, dropout=0.2)
 
     x = torch.rand(B, SEQ_LEN, D_MODEL)
@@ -69,7 +69,7 @@ def test_residual_connection() -> None:
 def test_encoder_block() -> None:
     mha = MultiHeadAttentionBlock(D_MODEL, H, dropout=0.2)
     ff = FeedForwardBlock(D_MODEL, SEQ_LEN, dropout=0.2)
-    encoder_block = EncoderBlock(mha, ff, dropout=0.2)
+    encoder_block = EncoderBlock(D_MODEL, mha, ff, dropout=0.2)
 
     x = torch.rand(B, SEQ_LEN, D_MODEL)
     src_mask = torch.ones(B, H, SEQ_LEN, SEQ_LEN)
@@ -84,11 +84,11 @@ def create_encoder() -> Encoder:
     for _ in range(6):
         mha = MultiHeadAttentionBlock(D_MODEL, H, dropout=0.2)
         ff = FeedForwardBlock(D_MODEL, SEQ_LEN, dropout=0.2)
-        encoder_block = EncoderBlock(mha, ff, dropout=0.2)
+        encoder_block = EncoderBlock(D_MODEL, mha, ff, dropout=0.2)
 
         layers.append(encoder_block)
 
-    encoder = Encoder(nn.ModuleList(layers))
+    encoder = Encoder(D_MODEL, nn.ModuleList(layers))
 
     return encoder
 
@@ -108,7 +108,7 @@ def test_decoder_block() -> None:
     self_attention_block = MultiHeadAttentionBlock(D_MODEL, H, dropout=0.2)
     cross_attention_block = MultiHeadAttentionBlock(D_MODEL, H, dropout=0.2)
     ff = FeedForwardBlock(D_MODEL, SEQ_LEN, dropout=0.2)
-    decoder_block = DecoderBlock(self_attention_block, cross_attention_block, ff, dropout=0.2)
+    decoder_block = DecoderBlock(D_MODEL, self_attention_block, cross_attention_block, ff, dropout=0.2)
 
     x = torch.rand(B, SEQ_LEN, D_MODEL)
     encoder_output = torch.rand(B, SEQ_LEN, D_MODEL)
@@ -126,11 +126,11 @@ def create_decoder() -> Decoder:
         self_attention_block = MultiHeadAttentionBlock(D_MODEL, H, dropout=0.2)
         cross_attention_block = MultiHeadAttentionBlock(D_MODEL, H, dropout=0.2)
         ff = FeedForwardBlock(D_MODEL, SEQ_LEN, dropout=0.2)
-        decoder_block = DecoderBlock(self_attention_block, cross_attention_block, ff, dropout=0.2)
+        decoder_block = DecoderBlock(D_MODEL, self_attention_block, cross_attention_block, ff, dropout=0.2)
 
         layers.append(decoder_block)
 
-    decoder = Decoder(layers)
+    decoder = Decoder(D_MODEL, layers)
 
     return decoder
 
