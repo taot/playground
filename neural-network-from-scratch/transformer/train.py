@@ -16,6 +16,7 @@ from tokenizers.pre_tokenizers import Whitespace
 
 from pathlib import Path
 
+from torch.optim import Optimizer
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
@@ -23,28 +24,19 @@ from torch.utils.tensorboard import SummaryWriter
 from config import get_model_folder_path, get_weights_file_path, get_config, ENV_LOCAL, ENV_LAMBDA
 from constants import PAD, SOS, EOS
 from model import build_transformer, Transformer
-from mydataset import BilingualDataset, causal_mask
+from bilingual_dataset import BilingualDataset, causal_mask
 
 
-def get_all_sentences(dataset_dict: datasets.DatasetDict, key: str, lang: str, *, limit: Optional[int] = None, verbose: bool = False):
-
-    def print_log(s: str) -> None:
-        print(f"get_all_training_sentences: {s}")
-
-    assert key in dataset_dict.keys(), f"dataset key must be one of {dataset_dict.keys()}"
-    print_log(f"key = {key}, lang = {lang}, limit = {limit}")
-
-    ds = dataset_dict[key]
-
+def get_all_sentences(dataset: datasets.Dataset, lang: str, *, limit: Optional[int] = None, verbose: bool = False):
     if limit is not None:
         assert limit >= 0, "limit must be greater than or equal to 0"
-        ds = ds.select(range(limit))
+        ds = dataset.select(range(limit))
 
-    with tqdm(total=len(ds)) as progress:
-        for item in ds:
+    with tqdm(total=len(dataset)) as progress:
+        for item in dataset:
             sentence = item["translation"][lang]
             if verbose:
-                print_log(sentence)
+                print(sentence)
             progress.update(1)
             yield sentence
 
@@ -63,12 +55,12 @@ def get_tokenizer(config: Dict[str, Any], lang: str) -> Optional[Tokenizer]:
         return tokenizer
 
 
-def build_tokenizer(config: Dict[str, Any], dataset_dict: datasets.DatasetDict, lang: str):
+def build_tokenizer(config: Dict[str, Any], dataset: datasets.Dataset, lang: str):
     tokenizer_path = Path(config["tokenizer_file"].format(lang))
 
     if lang == "zh":
         tokenizer = JiebaTokenizer()
-        tokenizer.train_from_iterator(get_all_sentences(dataset_dict, "train", "zh", limit=None, verbose=False), min_frequency=2)
+        tokenizer.train_from_iterator(get_all_sentences(dataset, "zh", limit=None, verbose=False), min_frequency=2)
         tokenizer.save(tokenizer_path)
 
     else:
@@ -77,7 +69,7 @@ def build_tokenizer(config: Dict[str, Any], dataset_dict: datasets.DatasetDict, 
 
         trainer = WordLevelTrainer(special_tokens=["[UNK]", "[PAD]", "[SOS]", "[EOS]"], min_frequency=2)
 
-        tokenizer.train_from_iterator(iterator=get_all_sentences(dataset_dict, "train", lang, limit=None, verbose=False), trainer=trainer)
+        tokenizer.train_from_iterator(iterator=get_all_sentences(dataset, lang, limit=None, verbose=False), trainer=trainer)
 
         tokenizer.post_processor = TemplateProcessing(
             single="[SOS] $0 [EOS]",
@@ -184,6 +176,17 @@ def run_validation(model: Transformer, val_ds: BilingualDataset, tokenizer_src: 
                 break
 
 
+def load_model_state(model: Transformer, optimizer: Optimizer, model_weightw_path: str, map_location=None) -> int:
+    print(f"Preloading model {model_weightw_path}")
+    state = torch.load(model_weightw_path, map_location=map_location)
+    model.load_state_dict(state['model_state_dict'])
+    initial_epoch = state["epoch"] + 1
+    optimizer.load_state_dict(state["optimizer_state_dict"])
+    global_step = state["global_step"]
+
+    return global_step
+
+
 def train_model(config: Dict[str, Any]):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device {device}")
@@ -201,12 +204,8 @@ def train_model(config: Dict[str, Any]):
     initial_epoch = 0
     global_step = 0
     if config["preload"]:
-        model_path = get_weights_file_path(config, config["preload"])
-        print(f"Preloading model {model_path}")
-        state = torch.load(model_path)
-        initial_epoch = state["epoch"] + 1
-        optimizer.load_state_dict(state["optimizer_state_dict"])
-        global_step = state["global_step"]
+        model_weights_path = get_weights_file_path(config, config["preload"])
+        global_step = load_model_state(model, optimizer, model_weights_path)
 
     loss_fn = nn.CrossEntropyLoss(ignore_index=tokenizer_src.token_to_id(PAD), label_smoothing=0.1).to(device)
 

@@ -4,7 +4,7 @@ from tokenizers import Tokenizer
 import tqdm
 
 import train
-from config import config
+from config import get_config
 
 
 def get_max_seq_len_for_dataset(ds: Dataset, tokenizer_src: Tokenizer, tokenizer_tgt: Tokenizer, lang_src: str, lang_tgt: str) -> int:
@@ -36,6 +36,8 @@ def get_max_seq_len_for_dataset(ds: Dataset, tokenizer_src: Tokenizer, tokenizer
 
 
 def main() -> None:
+    config = get_config()
+
     tokenizer_src = train.get_tokenizer(config, "en")
     tokenizer_tgt = train.get_tokenizer(config, "zh")
 

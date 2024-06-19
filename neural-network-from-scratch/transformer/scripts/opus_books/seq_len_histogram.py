@@ -15,6 +15,7 @@ from config import get_config
 def get_seq_lengths(ds: Dataset, tokenizer_map: Dict[str, Tokenizer], split: str) -> Dict[str, List[int]]:
     print(f"get_seq_lengths: split = {split}")
     seq_lengths_map = defaultdict(list)
+    max_seq_len_map = defaultdict(lambda: 0)
 
     count = 0
 
@@ -25,6 +26,7 @@ def get_seq_lengths(ds: Dataset, tokenizer_map: Dict[str, Tokenizer], split: str
                 ids = tokenizer.encode(text, add_special_tokens=False).ids
                 seq_len = len(ids)
                 seq_lengths_map[f"{lang}-{split}"].append(seq_len)
+                max_seq_len_map[f"{lang}-{split}"] = max(max_seq_len_map[f"{lang}-{split}"], seq_len)
 
             progress.update(1)
 
@@ -32,14 +34,16 @@ def get_seq_lengths(ds: Dataset, tokenizer_map: Dict[str, Tokenizer], split: str
             # if count > 1000:
             #     break
 
+    print(dict(max_seq_len_map))
+
     return seq_lengths_map
 
 
 def main() -> None:
     config = get_config()
 
-    langs = ["en", "zh"]
-    splits = ["train", "validation"]
+    langs = ["en", "it"]
+    splits = ["train"]
 
     tokenizer_map = {lang: train.get_tokenizer(config, lang) for lang in langs}
 

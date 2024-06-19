@@ -1,3 +1,4 @@
 datasets
+plotly
 tensorboard
 tokenizers

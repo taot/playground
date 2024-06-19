@@ -13,7 +13,7 @@ PROJECT_ROOT = Path(__file__).parent.resolve()
 DATA_ROOTS = {
     ENV_LOCAL: {
         TRACKED: Path("/home/taot/data/huggingface/my-neural-network-data/transformer-from-scratch"),
-        UNTRACKED: Path("/home/taot/data/ml_data/my_projects/transformer-from-scratch")
+        UNTRACKED: Path("/home/taot/data/ml_data/my_projects/transformer-from-scratch/local")
     },
     ENV_LAMBDA: {
         TRACKED: Path("/home/ubuntu/my-neural-network-data/transformer-from-scratch"),
@@ -35,18 +35,18 @@ def get_config(env: str = ENV_LOCAL) -> Dict[str, Any]:
         "env": env,
         "tokenizer_file": str(tracked_data_root) + "/tokenizers/tokenizer_{0}.json",
         "lang_src": "en",
-        "lang_tgt": "zh",
-        "seq_len": 52,
-        "dataset": "librakevin/wmt19-short",
-        "dataset_config_name": "zh-en-50-small",
+        "lang_tgt": "it",
+        "seq_len": 320,
+        "dataset": "librakevin/opus_books_split",
+        "dataset_config_name": "en-it",
         "batch_size": 16,
         "d_model": 512,
         "n_layers": 6,
         "num_epochs": 10,
-        "validation_every_n_steps": 3000,
+        "validation_every_n_steps": 1,
         "validation_num_examples": 4,
         "lr": 10 ** -4,
-        "preload": 2,
+        "preload": None,
         "model_folder": "weights",
         "model_basename": "tmodel_",
         "tensorboard_log_dir": str(untracked_data_root) + "/runs/tmodel"
@@ -60,7 +60,17 @@ def get_config(env: str = ENV_LOCAL) -> Dict[str, Any]:
 def get_model_folder_path(config: Dict[str, Any]) -> Path:
     env = config["env"]
     untracked_data_root = DATA_ROOTS[env][UNTRACKED]
-    return untracked_data_root / config["model_folder"]
+
+    model_folder_path = untracked_data_root / config["model_folder"]
+
+    if model_folder_path.is_file():
+        raise Exception(f"{model_folder_path} is a file instead of directory")
+
+    if not model_folder_path.exists():
+        print(f"Creating directory {model_folder_path}")
+        model_folder_path.mkdir(exist_ok=True, parents=True)
+
+    return model_folder_path
 
 
 def get_weights_file_path(config: Dict[str, Any], epoch: int) -> Path:
