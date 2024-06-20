@@ -39,16 +39,16 @@ class BilingualDataset(Dataset):
         tgt_text = src_tgt_pair["translation"][self.lang_tgt]
 
         enc_input_token_ids = self.tokenizer_src.encode(src_text, add_special_tokens=False).ids
-        dec_input_token_ids = self.tokenizer_src.encode(src_text, add_special_tokens=False).ids
+        dec_input_token_ids = self.tokenizer_tgt.encode(tgt_text, add_special_tokens=False).ids
 
         enc_num_padding_tokens = self.seq_len - len(enc_input_token_ids) - 2
         dec_num_padding_tokens = self.seq_len - len(dec_input_token_ids) - 1
 
         if enc_num_padding_tokens < 0:
-            raise ValueError(f"Text too long, index = {index}, lang = {self.lang_src}, seq_len = {self.seq_len}: {src_text}")
+            raise ValueError(f"Source text too long, index = {index}, lang = {self.lang_src}, seq_len = {self.seq_len}: {src_text}")
 
         if dec_num_padding_tokens < 0:
-            raise ValueError(f"Text too long, index = {index}, lang = {self.lang_tgt}, seq_len = {self.seq_len}: {tgt_text}")
+            raise ValueError(f"Target text too long, index = {index}, lang = {self.lang_tgt}, seq_len = {self.seq_len}: {tgt_text}")
 
         encoder_input = torch.cat([
             self.sos_token,
@@ -59,12 +59,12 @@ class BilingualDataset(Dataset):
 
         decoder_input = torch.cat([
             self.sos_token,
-            torch.tensor(enc_input_token_ids, dtype=torch.int64),
+            torch.tensor(dec_input_token_ids, dtype=torch.int64),
             torch.tensor([self.pad_token] * dec_num_padding_tokens, dtype=torch.int64),
         ])
 
         label = torch.cat([
-            torch.tensor(enc_input_token_ids, dtype=torch.int64),
+            torch.tensor(dec_input_token_ids, dtype=torch.int64),
             self.eos_token,
             torch.tensor([self.pad_token] * dec_num_padding_tokens, dtype=torch.int64),
         ])
