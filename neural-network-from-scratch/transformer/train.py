@@ -257,7 +257,8 @@ def train_model(config: Dict[str, Any]):
 
             global_step += 1
 
-        run_validation(model, val_dataloader, tokenizer_src, tokenizer_tgt, config["seq_len"], device, lambda msg: batch_iterator.write(msg))
+        run_validation(model, val_dataloader, tokenizer_src, tokenizer_tgt, config["seq_len"], device, lambda msg: batch_iterator.write(msg),
+                       num_examples=config["validation_num_examples"])
 
         # Save the model
         model_file_path = get_weights_file_path(config, epoch)
