@@ -187,9 +187,9 @@ class DecoderBlock(nn.Module):
         self.residual_connections = nn.ModuleList([ResidualConnection(features, dropout=dropout) for _ in range(3)])
         
     def forward(self, x: Tensor, encoder_output: Tensor, cross_mask: Tensor, tgt_mask: Tensor) -> Tensor:
-        self.residual_connections[0](x, lambda x: self.self_attention_block(x, x, x, tgt_mask))
-        self.residual_connections[1](x, lambda x: self.cross_attention_block(x, encoder_output, encoder_output, cross_mask))    # TODO
-        self.residual_connections[2](x, self.feed_forward_block)
+        x = self.residual_connections[0](x, lambda x: self.self_attention_block(x, x, x, tgt_mask))
+        x = self.residual_connections[1](x, lambda x: self.cross_attention_block(x, encoder_output, encoder_output, cross_mask))    # TODO
+        x = self.residual_connections[2](x, self.feed_forward_block)
         return x
 
 
