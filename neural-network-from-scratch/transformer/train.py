@@ -172,6 +172,8 @@ def run_validation(model: Transformer, val_ds: BilingualDataset, tokenizer_src: 
             print_msg(f"TARGET: {target_text}")
             print_msg(f"PREDICTED: {model_out_text}")
 
+            return model_out
+
             if count >= num_examples:
                 break
 

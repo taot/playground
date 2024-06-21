@@ -65,15 +65,15 @@ class FeedForwardBlock(nn.Module):
 
     def __init__(self, d_model: int, d_ff: int, *, dropout: float):
         super().__init__()
-        self.linear1 = nn.Linear(d_model, d_ff)
+        self.linear_1 = nn.Linear(d_model, d_ff)
         self.dropout = nn.Dropout(dropout)
-        self.linear2 = nn.Linear(d_ff, d_model)
+        self.linear_2 = nn.Linear(d_ff, d_model)
 
     # TODO: experiment ReLU approach in the paper
     def forward(self, x: Tensor) -> Tensor:
         # x: (B, seq_len, d_model)
         # (B, seq_len, d_model) -> (B, seq_len, d_ff) -> (B, seq_len, d_model)
-        x = self.linear2(self.dropout(torch.relu(self.linear1(x))))
+        x = self.linear_2(self.dropout(torch.relu(self.linear_1(x))))
         return x
 
 
