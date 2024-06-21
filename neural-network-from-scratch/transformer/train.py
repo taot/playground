@@ -148,6 +148,7 @@ def run_validation(model: Transformer, val_ds: BilingualDataset, tokenizer_src: 
                    max_len: int, device: str, print_msg, num_examples=2) -> None:
     model.eval()
     count = 0
+    print_msg(f"num_examples = {num_examples}")
 
     with torch.no_grad():
         for batch in val_ds:
@@ -171,8 +172,6 @@ def run_validation(model: Transformer, val_ds: BilingualDataset, tokenizer_src: 
             print_msg(f"SOURCE: {source_text}")
             print_msg(f"TARGET: {target_text}")
             print_msg(f"PREDICTED: {model_out_text}")
-
-            return model_out
 
             if count >= num_examples:
                 break
@@ -205,7 +204,7 @@ def train_model(config: Dict[str, Any]):
 
     initial_epoch = 0
     global_step = 0
-    if config["preload"]:
+    if config["preload"] is not None:
         model_weights_path = get_weights_file_path(config, config["preload"])
         initial_epoch, global_step = load_model_state(model, optimizer, model_weights_path)
 
