@@ -34,7 +34,7 @@ def get_config(env: str = ENV_LOCAL) -> Dict[str, Any]:
     return {
         "env": env,
         # "tokenizer_file": "/home/taot/src_repos/pytorch-transformer/tokenizer_{0}.json",
-        "tokenizer_file": str(tracked_data_root) + "/tokenizers/tokenizer_{0}.json",
+        "tokenizer_file": str(tracked_data_root) + "/tokenizers/opus_books_split/tokenizer_{0}.json",
         "lang_src": "en",
         "lang_tgt": "it",
         "seq_len": 350,
