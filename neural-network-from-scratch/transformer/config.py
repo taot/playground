@@ -43,7 +43,7 @@ def get_config(env: str = ENV_LOCAL) -> Dict[str, Any]:
         "batch_size": 8,
         "d_model": 512,
         "n_layers": 6,
-        "num_epochs": 10,
+        "num_epochs": 210,
         "validation_every_n_steps": -1,
         "validation_num_examples": 4,
         "lr": 10 ** -4,
