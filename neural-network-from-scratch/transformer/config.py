@@ -33,13 +33,12 @@ def get_config(env: str = ENV_LOCAL) -> Dict[str, Any]:
 
     return {
         "env": env,
-        # "tokenizer_file": "/home/taot/src_repos/pytorch-transformer/tokenizer_{0}.json",
-        "tokenizer_file": str(tracked_data_root) + "/tokenizers/opus_books_split/tokenizer_{0}.json",
+        "tokenizer_file": str(tracked_data_root) + "/tokenizers/opus-100/tokenizer_{0}.json",
         "lang_src": "en",
-        "lang_tgt": "it",
-        "seq_len": 350,
-        "dataset": "librakevin/opus_books_split",
-        "dataset_config_name": "en-it",
+        "lang_tgt": "zh",
+        "seq_len": 100,
+        "dataset": "Helsinki-NLP/opus-100",
+        "dataset_config_name": "en-zh",
         "batch_size": 8,
         "d_model": 512,
         "n_layers": 6,

@@ -10,9 +10,9 @@ from torch import nn, Tensor
 
 import datasets
 from tokenizers import Tokenizer
-from tokenizers.models import WordLevel
-from tokenizers.trainers import WordLevelTrainer
-from tokenizers.pre_tokenizers import Whitespace
+from tokenizers.models import WordLevel, BPE
+from tokenizers.trainers import WordLevelTrainer, BpeTrainer
+from tokenizers.pre_tokenizers import Whitespace, ByteLevel
 
 from pathlib import Path
 
@@ -43,19 +43,41 @@ def get_all_sentences(dataset: datasets.Dataset, lang: str, *, limit: Optional[i
 
 def get_tokenizer(config: Dict[str, Any], lang: str) -> Optional[Tokenizer]:
     tokenizer_path = Path(config["tokenizer_file"].format(lang))
+    print(tokenizer_path)
 
     if not tokenizer_path.exists():
         return None
 
-    if lang == "zh":
-        tokenizer = JiebaTokenizer.from_file(tokenizer_path)
-        return tokenizer
-    else:
-        tokenizer = Tokenizer.from_file(str(tokenizer_path))
-        return tokenizer
+    tokenizer = Tokenizer.from_file(str(tokenizer_path))
+    return tokenizer
 
 
-def build_tokenizer(config: Dict[str, Any], dataset: datasets.Dataset, lang: str):
+def build_tokenizer(config: Dict[str, Any], dataset: datasets.Dataset, lang: str) -> Tokenizer:
+    tokenizer_path = Path(config["tokenizer_file"].format(lang))
+    print(f"tokenizer_path = {tokenizer_path}")
+
+    tokenizer = Tokenizer(BPE(unk_token="[UNK]"))
+    tokenizer.pre_tokenizer = ByteLevel()
+
+    trainer = BpeTrainer(special_tokens=["[UNK]", "[PAD]", "[SOS]", "[EOS]"], min_frequency=2, show_progress=True)
+
+    tokenizer.train_from_iterator(iterator=get_all_sentences(dataset, lang, limit=None, verbose=False), trainer=trainer)
+
+    tokenizer.post_processor = TemplateProcessing(
+        single="[SOS] $0 [EOS]",
+        pair="[SOS] $A [EOS] $B:1 [EOS]:1",
+        special_tokens=[
+            ("[SOS]", tokenizer.token_to_id("[SOS]")),
+            ("[EOS]", tokenizer.token_to_id("[EOS]"))
+        ],
+    )
+
+    tokenizer.save(str(tokenizer_path))
+
+    return tokenizer
+
+
+def build_word_level_tokenizer(config: Dict[str, Any], dataset: datasets.Dataset, lang: str):
     tokenizer_path = Path(config["tokenizer_file"].format(lang))
 
     if lang == "zh":
