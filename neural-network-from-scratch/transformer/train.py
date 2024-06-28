@@ -9,7 +9,7 @@ from tokenizers.processors import TemplateProcessing
 from torch import nn, Tensor
 
 import datasets
-from tokenizers import Tokenizer
+from tokenizers import Tokenizer, decoders, pre_tokenizers, processors
 from tokenizers.models import WordLevel, BPE
 from tokenizers.trainers import WordLevelTrainer, BpeTrainer
 from tokenizers.pre_tokenizers import Whitespace, ByteLevel
@@ -43,7 +43,7 @@ def get_all_sentences(dataset: datasets.Dataset, lang: str, *, limit: Optional[i
 
 def get_tokenizer(config: Dict[str, Any], lang: str) -> Optional[Tokenizer]:
     tokenizer_path = Path(config["tokenizer_file"].format(lang))
-    print(tokenizer_path)
+    print(f"Getting tokenizer from {tokenizer_path}")
 
     if not tokenizer_path.exists():
         return None
@@ -52,25 +52,19 @@ def get_tokenizer(config: Dict[str, Any], lang: str) -> Optional[Tokenizer]:
     return tokenizer
 
 
-def build_tokenizer(config: Dict[str, Any], dataset: datasets.Dataset, lang: str) -> Tokenizer:
+def build_bbpe_tokenizer(config: Dict[str, Any], dataset: datasets.Dataset, lang: str) -> Tokenizer:
     tokenizer_path = Path(config["tokenizer_file"].format(lang))
     print(f"tokenizer_path = {tokenizer_path}")
 
     tokenizer = Tokenizer(BPE(unk_token="[UNK]"))
-    tokenizer.pre_tokenizer = ByteLevel()
-
+    # tokenizer.pre_tokenizer = pre_tokenizers.Whitespace()
+    tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel()
     trainer = BpeTrainer(special_tokens=["[UNK]", "[PAD]", "[SOS]", "[EOS]"], min_frequency=2, show_progress=True)
 
     tokenizer.train_from_iterator(iterator=get_all_sentences(dataset, lang, limit=None, verbose=False), trainer=trainer)
 
-    tokenizer.post_processor = TemplateProcessing(
-        single="[SOS] $0 [EOS]",
-        pair="[SOS] $A [EOS] $B:1 [EOS]:1",
-        special_tokens=[
-            ("[SOS]", tokenizer.token_to_id("[SOS]")),
-            ("[EOS]", tokenizer.token_to_id("[EOS]"))
-        ],
-    )
+    tokenizer.post_processor = processors.ByteLevel(trim_offsets=False)
+    tokenizer.decoder = decoders.ByteLevel()
 
     tokenizer.save(str(tokenizer_path))
 

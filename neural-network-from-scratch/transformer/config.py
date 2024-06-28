@@ -33,12 +33,12 @@ def get_config(env: str = ENV_LOCAL) -> Dict[str, Any]:
 
     return {
         "env": env,
-        "tokenizer_file": str(tracked_data_root) + "/tokenizers/opus-100/tokenizer_{0}.json",
+        "tokenizer_file": str(tracked_data_root) + "/tokenizers/wmt19-short/tokenizer_{0}.json",
         "lang_src": "en",
         "lang_tgt": "zh",
-        "seq_len": 100,
-        "dataset": "Helsinki-NLP/opus-100",
-        "dataset_config_name": "en-zh",
+        "seq_len": 80,
+        "dataset": "librakevin/wmt19-short",
+        "dataset_config_name": "zh-en-50-small",
         "batch_size": 8,
         "d_model": 512,
         "n_layers": 6,
