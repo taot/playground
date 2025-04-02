@@ -10,4 +10,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 jieba_tokenizer = { path = "../jieba_tokenizer" }
-pyo3 = "0.21.2"
+pyo3 = "0.24.1"
