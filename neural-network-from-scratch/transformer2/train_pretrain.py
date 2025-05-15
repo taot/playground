@@ -10,7 +10,7 @@ from datasets import PretrainDataset
 from model.model import MiniTransformer
 
 
-def init_model(config: LMConfig):
+def init_model(config: LMConfig) -> MiniTransformer:
     print(f"Config: {config}")
 
     tokenizer = AutoTokenizer.from_pretrained('./model/minimind_tokenizer')
@@ -29,7 +29,7 @@ def init_model(config: LMConfig):
     return model, tokenizer
 
 
-def get_lr(current_step, total_steps, lr):
+def get_lr(current_step: int, total_steps: int, lr: float) -> float:
     return lr / 10 + 0.5 * lr * (1 + math.cos(math.pi * current_step / total_steps))
 
 
@@ -73,7 +73,7 @@ class PreTrainer:
                 param_group['lr'] = lr
 
             with self.context:
-                result = self.model(X)  # result: (batch_size, n_seq, vocab_size)
+                result = self.model(X, mask=loss_mask)  # result: (batch_size, n_seq, vocab_size)
                 flat_result = result.view(-1, result.shape[-1])     # flat_result: (batch_size * n_seq, vocab_size)
                 flat_Y = Y.view(-1)     # flat_Y: (batch_size * n_seq)
                 loss = loss_fn(flat_result, flat_Y).view(Y.shape)   # loss: (batch_size, n_seq)

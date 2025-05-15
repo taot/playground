@@ -1,5 +1,6 @@
 import math
-from typing import Optional, Callable
+from pathlib import Path
+from typing import Optional, Callable, Self
 
 import numpy as np
 import torch
@@ -130,11 +131,19 @@ class MultiHeadAttentionBlock(nn.Module):
             self.linear.bias = nn.Parameter(weights["linear_bias"])
 
     # TODO: add mask
-    def forward(self, q: Tensor, k: Tensor, v: Tensor) -> Tensor:
+    def forward(self, q: Tensor, k: Tensor, v: Tensor, mask: Optional[Tensor]) -> Tensor:
         # q, k, v: (batch_size, n_seq, d_model)
+        # mask: (batch_size, n_seq): bool
         assert len(q.shape) == len(k.shape) == len(v.shape) == 3
-        assert q.shape[-1] == k.shape[-1] == v.shape[-1] == self.d_model
+
+        batch_size = q.shape[0]
+        assert q.shape[1] == self.n_seq
+        assert q.shape[2] == self.d_model
         assert q.shape == k.shape == v.shape
+
+        assert len(mask.shape) == 2
+        assert mask.shape[0] == batch_size
+        assert mask.shape[1] == self.n_seq
 
         # query, key, value: (batch_size, n_seq, d_model)
         query = self.W_q(q)
@@ -157,6 +166,14 @@ class MultiHeadAttentionBlock(nn.Module):
         # scores, scaled_scores, softmax_scores: (batch_size, h, n_seq, n_seq)
         scores = torch.matmul(query, key_t)
         scaled_scores = scores / math.sqrt(d_k)
+
+        if mask is not None:
+            # create causal mask and combine with padding mask
+            causal_mask = (torch.tril(torch.ones(self.n_seq, self.n_seq, dtype=torch.int)) == 1).unsqueeze(0).unsqueeze(0)      # causal_mask: (1, 1, n_seq, n_seq)
+            headed_mask = mask.unsqueeze(1).unsqueeze(1)    # squeeze in the head dimension, mask: (batch_size, 1, n_seq, n_seq)
+            combined_mask = headed_mask & causal_mask       # should broadcast, combined_mask: (batch_size, 1, n_seq, n_seq)
+            scaled_scores = scaled_scores.masked_fill_(combined_mask == 0, -1e9)
+
         softmax_scores = torch.softmax(scaled_scores, dim=-1)
 
         y1 = torch.matmul(softmax_scores, value)        # y1: (batch_size, h, n_seq, d_k)
@@ -240,13 +257,14 @@ class DecoderLayer(nn.Module):
         self.resid_conn_1 = ResidualConnection(d_model, n_seq, dropout=dropout)
         self.resid_conn_2 = ResidualConnection(d_model, n_seq, dropout=dropout)
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, x: Tensor, mask: Optional[Tensor]) -> Tensor:
         # x: (batch_size, n_seq, d_model)
+        # mask: (batch_size, n_seq, ?) TODO
         assert len(x.shape) == 3
         assert x.shape[-1] == self.d_model
         assert x.shape[-2] == self.n_seq
 
-        x1 = self.resid_conn_1(x, lambda x: self.attention(x, x, x))
+        x1 = self.resid_conn_1(x, lambda x: self.attention(x, x, x, mask))
         x2 = self.resid_conn_2(x1, self.feed_forward)
 
         return x2
@@ -282,6 +300,7 @@ class MiniTransformer(nn.Module):
         self.n_seq = n_seq
         self.h = h
         self.n_layers = n_layers
+        self.dropout = dropout
 
         self.embedding = nn.Embedding(num_embeddings=vocab_size, embedding_dim=d_model)
         self.decoder_layers = [
@@ -292,15 +311,47 @@ class MiniTransformer(nn.Module):
         self.projection = ProjectionLayer(d_model, vocab_size)
 
 
-    def forward(self, input: Tensor) -> Tensor:
+    def forward(self, input: Tensor, mask: Optional[Tensor]) -> Tensor:
         # input: (batch_size, n_seq): int
+        # mask: (?) TODO
         assert len(input.shape) == 2
         assert input.shape[-1] == self.n_seq
 
         x = self.embedding(input)   # x: (batch_size, n_seq, d_model)
         for decoder in self.decoder_layers:
-            x = decoder(x)
+            x = decoder(x, mask)
 
         y = self.projection(x)  # y: (batch_size, n_seq, vocab_size)
 
         return y
+
+    def save(self, file: Path) -> None:
+        dct = {
+            "model_state_dict": self.state_dict(),
+            "vocab_size": self.vocab_size,
+            "d_model": self.d_model,
+            "n_seq": self.n_seq,
+            "h": self.h,
+            "n_layers": self.n_layers,
+            "dropout": self.dropout
+        }
+        torch.save(dct, file)
+
+    @staticmethod
+    def load(file: Path) -> "MiniTransformer":
+        dct = torch.load(file)
+
+        state_dict = dct["model_state_dict"]
+        vocab_size = dct["vocab_size"]
+        d_model = dct["d_model"]
+        n_seq = dct["n_seq"]
+        h = dct["h"]
+        n_layers = dct["n_layers"]
+        dropout = dct["dropout"]
+
+        model = MiniTransformer(vocab_size=vocab_size, d_model=d_model, n_seq=n_seq, h=h, n_layers=n_layers, dropout=dropout)
+        model.load_state_dict(state_dict)
+
+        model.eval()
+
+        return model

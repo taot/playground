@@ -46,6 +46,8 @@ class PretrainDataset(Dataset):
 
         X = input_ids[:-1].clone().detach()
         Y = input_ids[1:].clone().detach()
+
+        # TODO why loss_mask[1:] ?
         loss_mask = loss_mask[1:].clone().detach()
 
         return X, Y, loss_mask, text
