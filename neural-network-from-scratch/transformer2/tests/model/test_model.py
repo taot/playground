@@ -4,7 +4,7 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 from model.model import AttentionBlock, FeedForwardBlock, ResidualConnection, DecoderLayer, ProjectionLayer, MultiHeadAttentionBlock, \
-    create_rotary_position_encoding_tensor, swap_adjacent_last_dim, apply_rotary_position_encoding
+    create_rotary_position_encoding_tensor, swap_adjacent_last_dim, apply_rotary_position_encoding, MiniTransformer
 
 
 def test_swap_adjacent_last_dim() -> None:
@@ -45,7 +45,7 @@ def test_apply_rotary_position_encoding() -> None:
     # make it preserves gradients
     loss = y.sum() / 2
     loss.backward()
-    assert torch.all(x.grad != 0)
+    assert torch.all(x.grad != 0)   # type: ignore[arg-type]
 
     expected = np.array([
         [
@@ -198,27 +198,27 @@ def test_residual_connection() -> None:
 
 
 def test_decoder_layer() -> None:
-    d_model = 3
-    n_seq = 2
-
-    decoder_layer = DecoderLayer(d_model, n_seq, dropout=0.1)
-
     x = Tensor([
         [
-            [0.1, 0.2, 0.3],
-            [0.2, 0.3, 0.4],
+            [0.1, 0.2, 0.3, 0.4],
+            [0.5, 0.6, 0.7, 0.8],
         ],
         [
-            [0.4, 0.5, 0.6],
-            [0.7, 0.8, 0.9],
+            [0.2, 0.3, 0.4, 0.5],
+            [0.6, 0.7, 0.8, 0.9],
         ]
     ]).float()
+
+    batch_size, n_seq, d_model = x.shape
+    h = 2
+
+    decoder_layer = DecoderLayer(d_model, n_seq, h, dropout=0.1)
 
     output = decoder_layer(x)
 
     print(output)
 
-    assert output.shape == torch.Size([2, n_seq, d_model])
+    assert output.shape == torch.Size([batch_size, n_seq, d_model])
 
 
 def test_projection_layer() -> None:
@@ -247,3 +247,17 @@ def test_projection_layer() -> None:
         for j in range(output.shape[1]):
             a = output[i, j].detach().numpy()
             assert abs(a.sum() - 1.0) < 1e-6
+
+
+def test_mini_transformer() -> None:
+    vocab_size = 100
+    d_model = 4
+    n_seq = 100
+    batch_size = 3
+
+    input = torch.randint(0, vocab_size, (batch_size, n_seq))
+
+    transformer = MiniTransformer(vocab_size=vocab_size, d_model=d_model, n_seq=n_seq, h=2, n_layers=6, dropout=0.1)
+    output = transformer(input)
+
+    assert output.shape == torch.Size([batch_size, n_seq, vocab_size])

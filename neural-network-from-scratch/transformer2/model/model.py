@@ -1,10 +1,10 @@
 import math
 from typing import Optional, Callable
 
+import numpy as np
 import torch
 from torch import nn, Tensor
 from torch.nn import LayerNorm
-import numpy as np
 
 
 def create_rotary_position_encoding_tensor(d_model: int, n_seq: int) -> Tensor:
@@ -43,20 +43,20 @@ def swap_adjacent_last_dim(x: Tensor) -> Tensor:
     return y
 
 
-def apply_rotary_position_encoding(x: Tensor, d: int, n_seq: int) -> Tensor:
-    if d % 2 != 0:
+def apply_rotary_position_encoding(x: Tensor, d_model: int, n_seq: int) -> Tensor:
+    if d_model % 2 != 0:
         raise ValueError(f"d_model must be divisible by 2 in rotary position encoding: d_model = {d_model}")
 
-    assert x.shape[-1] == d
+    assert x.shape[-1] == d_model
     assert x.shape[-2] == n_seq
 
     x2 = swap_adjacent_last_dim(x)
 
-    t_cos = torch.zeros([n_seq, d], dtype=torch.float32, requires_grad=False)
-    t_sin = torch.zeros([n_seq, d], dtype=torch.float32, requires_grad=False)
+    t_cos = torch.zeros([n_seq, d_model], dtype=torch.float32, requires_grad=False)
+    t_sin = torch.zeros([n_seq, d_model], dtype=torch.float32, requires_grad=False)
     for j in range(n_seq):
-        for i in range(d // 2):
-            theta = math.pow(10000, -2 * i / d)
+        for i in range(d_model // 2):
+            theta = math.pow(10000, -2 * i / d_model)
             t_cos[j, 2 * i] = math.cos(theta * j)
             t_cos[j, 2 * i + 1] = math.cos(theta * j)
             t_sin[j, 2 * i] = math.sin(theta * j)
@@ -230,12 +230,12 @@ class ResidualConnection(nn.Module):
 
 class DecoderLayer(nn.Module):
 
-    def __init__(self, d_model: int, n_seq: int, *, dropout: float):
+    def __init__(self, d_model: int, n_seq: int, h: int, *, dropout: float):
         super().__init__()
         self.d_model = d_model
         self.n_seq = n_seq
 
-        self.attention = AttentionBlock(d_model)
+        self.attention = MultiHeadAttentionBlock(d_model, n_seq, h)
         self.feed_forward = FeedForwardBlock(d_model, 2 * d_model, dropout=dropout)
         self.resid_conn_1 = ResidualConnection(d_model, n_seq, dropout=dropout)
         self.resid_conn_2 = ResidualConnection(d_model, n_seq, dropout=dropout)
@@ -272,10 +272,35 @@ class ProjectionLayer(nn.Module):
         return x2
 
 
-class Transformer(nn.Module):
+class MiniTransformer(nn.Module):
 
-    def __init__(self) -> None:
+    def __init__(self, vocab_size: int, d_model: int, n_seq: int, h: int, n_layers: int, *, dropout: float) -> None:
         super().__init__()
 
-    def forward(self, x: Tensor) -> Tensor:
-        pass
+        self.vocab_size = vocab_size
+        self.d_model = d_model
+        self.n_seq = n_seq
+        self.h = h
+        self.n_layers = n_layers
+
+        self.embedding = nn.Embedding(num_embeddings=vocab_size, embedding_dim=d_model)
+        self.decoder_layers = [
+            DecoderLayer(d_model, n_seq, h, dropout=dropout)
+            for _ in range(n_layers)
+        ]
+
+        self.projection = ProjectionLayer(d_model, vocab_size)
+
+
+    def forward(self, input: Tensor) -> Tensor:
+        # input: (batch_size, n_seq): int
+        assert len(input.shape) == 2
+        assert input.shape[-1] == self.n_seq
+
+        x = self.embedding(input)   # x: (batch_size, n_seq, d_model)
+        for decoder in self.decoder_layers:
+            x = decoder(x)
+
+        y = self.projection(x)  # y: (batch_size, n_seq, vocab_size)
+
+        return y

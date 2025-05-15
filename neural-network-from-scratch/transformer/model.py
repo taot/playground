@@ -95,7 +95,7 @@ class MultiHeadAttentionBlock(nn.Module):
         self.w_o = nn.Linear(d_model, d_model, bias=False)
 
     @staticmethod
-    def attention(query: Tensor, key: Tensor, value: Tensor, mask: Optional[Tensor], dropout: Optional[nn.Dropout]) -> (Tensor, Tensor):
+    def attention(query: Tensor, key: Tensor, value: Tensor, mask: Optional[Tensor], dropout: Optional[nn.Dropout]) -> tuple[Tensor, Tensor]:
         d_k = query.size(-1)
 
         attention_scores = (query @ key.transpose(-2, -1)) / math.sqrt(d_k)  # (B, h, seq_len, seq_len)
