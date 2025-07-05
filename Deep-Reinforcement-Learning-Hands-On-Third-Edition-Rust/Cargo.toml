@@ -1,0 +1,18 @@
+[package]
+name = "deep-reinforcement-learning-hands-on-third-edition-rust"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.98"
+burn = { version = "0.17.1", features = ["autodiff", "ndarray"] }
+gym = { path = "/home/taot/github/gym-rs" }
+hostname = "0.4.1"
+ndarray = "0.15.6"
+tensorboard-rs = "0.5.9"
+time = { version = "0.3.41", features = ["local-offset"] }
+rand = "0.9.1"
+burn-tch = "0.17.1"
+
+#[profile.dev]
+#debug = true
